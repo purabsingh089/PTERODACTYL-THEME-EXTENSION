@@ -1,0 +1,184 @@
+# Project Spec: Premium AI-Powered Pterodactyl Blueprint Theme
+
+## 0. Context & Base Framework Decision
+
+**Target:** Blueprint extension framework (blueprint.zip) for Pterodactyl Panel — NOT a standalone panel fork.
+Blueprint ships extensions as a `.blueprint` package that injects CSS/JS/PHP into the panel without touching core files, so it survives Pterodactyl updates.
+
+**Important licensing note:** Nebula (the theme this project is inspired by) is closed-source/paid — its public repo is issue-tracking only, no source available to fork. Do **not** attempt to copy or decompile Nebula's assets.
+
+**Base to fork/extend instead:** NookTheme (MIT-licensed, most-starred free Blueprint theme, actively maintained) or Recolor (simpler, first 3rd-party Blueprint extension) as the build scaffold — i.e. use their `conf.yml` structure, build pipeline, and CSS variable injection pattern as a technical starting point, then build fully original visual design and all new features on top. This matches an "inspired by, not copied from" approach.
+
+**Goal:** Ship a premium, sellable Blueprint theme (positioned as a Nebula competitor) that:
+1. Completely re-skins both the Client panel and Admin panel with a modern, rich UI
+2. Adds AI-powered server diagnostics/optimization features Nebula does not have
+3. Uses monkeycode-ai.net (your own AI platform — DeepSeek V4 Flash, Qwen 3.5 Plus, Qwen 3.8, and other available models) as the backend inference provider
+
+---
+
+## 1. Extension Manifest & Complete Folder Structure
+
+```
+ai-theme/
+├── conf.yml                          # Blueprint manifest — see fields below
+├── README.md
+├── CHANGELOG.md
+├── LICENSE
+│
+├── private/
+│   ├── Controllers/
+│   │   ├── SettingsController.php        # Admin theme customizer CRUD
+│   │   ├── AiFixerController.php         # AI diagnose/fix endpoint
+│   │   ├── AiOptimizerController.php     # AI resource optimization endpoint
+│   │   ├── AiUsageController.php         # Usage/quota tracking for AI calls
+│   │   └── ExportImportController.php    # Export/import theme presets as JSON
+│   ├── Services/
+│   │   ├── MonkeyCodeClient.php          # HTTP client wrapper for monkeycode-ai.net
+│   │   ├── PromptBuilder.php             # Builds structured prompts per feature (fixer/optimizer)
+│   │   ├── LogSanitizer.php              # Strips secrets/tokens from console output before sending to AI
+│   │   └── ThemePresetManager.php        # Handles preset save/load/reset-to-default
+│   ├── Models/
+│   │   ├── ThemeSetting.php
+│   │   └── AiRequestLog.php
+│   ├── migrations/
+│   │   ├── create_theme_settings_table.php
+│   │   ├── create_ai_request_logs_table.php
+│   │   └── create_theme_presets_table.php
+│   └── routes.php                        # Registers all controller routes under Blueprint's namespace
+│
+├── admin/
+│   ├── wrapper.blade.php             # Injects CSS vars + fonts + assets into admin shell
+│   ├── view.blade.php                # Main admin settings/customizer page
+│   ├── partials/
+│   │   ├── color-picker.blade.php
+│   │   ├── font-selector.blade.php
+│   │   ├── logo-upload.blade.php
+│   │   ├── ai-model-selector.blade.php   # Choose DeepSeek V4 Flash / Qwen 3.5 / Qwen 3.8 per feature
+│   │   └── usage-dashboard.blade.php     # AI call volume, cost estimate, rate-limit status
+│   └── admin.css
+│
+├── public/
+│   ├── css/
+│   │   ├── theme.css                     # Compiled output (Tailwind or hand-rolled)
+│   │   ├── tokens.css                    # CSS custom properties: color/spacing/radius/shadow scale
+│   │   └── animations.css                # Keyframes, transitions, micro-interaction classes
+│   ├── js/
+│   │   ├── theme.js                      # Core injection script for client SPA
+│   │   ├── ai-fixer.js                   # Console page AI button + modal logic
+│   │   ├── ai-optimizer.js               # Resource card AI suggestions logic
+│   │   ├── command-palette.js             # Cmd+K style command palette
+│   │   └── shortcuts.js                  # Keyboard shortcut bindings
+│   ├── fonts/
+│   ├── icons/                            # Custom icon set (SVG sprite)
+│   └── img/
+│       ├── logo-placeholder.svg
+│       └── empty-states/                 # Illustrations for empty server list, no backups, etc.
+│
+└── src/                               # Pre-compile source (if using a build step)
+    ├── tailwind.config.js
+    ├── postcss.config.js
+    └── build.js
+```
+
+`conf.yml` fields to set: `info.name`, `info.identifier`, `info.description`, `info.version`, `info.author`, `requests.target` (pin to current Pterodactyl release), `flags` (e.g. `dashboard.postload` for injecting scripts into the client SPA, `admin.postload` for admin injection), `permissions` (declare DB table access, outbound HTTP for the AI calls).
+
+---
+
+## 2. Premium Visual Design Spec
+
+The goal is a theme that reads as expensive and intentional, not a color-swap of stock Pterodactyl. That comes from consistency in a design token system plus small motion/detail work, more than from any single flashy feature. Concrete spec:
+
+### 2.1 Design tokens (the foundation of "feeling premium")
+- **Color system:** define on a 50–950 scale (not just 3-4 named colors) for primary, accent, and neutral/surface — gives proper depth for hover/active/disabled states instead of flat single-tone buttons. Support both a dark theme (default, since most panels are dark) and a light theme, both driven by the same token set.
+- **Elevation/shadow scale:** 4-5 step shadow system (subtle → pronounced) used consistently for cards, modals, dropdowns — this alone is what separates "premium" from "default Bootstrap-y" panels.
+- **Radius scale:** consistent corner radius tokens (sm/md/lg/xl) rather than ad hoc `rounded-lg` everywhere.
+- **Typography:** a distinct heading font paired with a clean UI body font (e.g. a geometric sans for headings + Inter/system font for body) — avoid using one font for everything, which is the #1 giveaway of a template feel.
+- **Spacing scale:** 4px/8px base grid, applied consistently — misaligned spacing is the second biggest tell of a low-effort theme.
+
+### 2.2 Motion & micro-interactions
+- Page/route transitions: subtle fade+slide (150-250ms), not instant jump-cuts
+- Button/card hover states: scale (1.01-1.02) + shadow lift, not just color change
+- Skeleton loading states for server list, console, resource graphs — never a blank screen or generic spinner
+- Toast notifications with slide-in/auto-dismiss, styled to match the token system
+- Animated status indicators (pulsing dot for "running," smooth transition for state changes)
+
+### 2.3 Client Panel
+- Redesigned server list: grid/list toggle, live status badges, quick-action buttons (restart/console/AI-fix) with hover reveal
+- Dashboard resource graphs: CPU/RAM/disk usage over time (sparkline or full chart), pulled from existing Pterodactyl resource-usage websocket/API — no new backend polling needed
+- Console page: syntax-highlighted output, collapsible sections, "Analyze with AI" button injected next to the console (see §3)
+- Command palette (Cmd/Ctrl+K): jump to any server, run quick actions, search settings — this is a genuinely differentiating power-user feature few Pterodactyl themes have
+- Keyboard shortcuts overlay (Nebula has this — match or exceed it)
+- Custom favicon/logo/branding injection point (configurable per install)
+- Empty states with illustration + helpful copy (no servers yet, no backups, no allocations) instead of bare text
+
+### 2.4 Admin Panel
+- Matching visual theme applied to `/admin` routes via `wrapper.blade.php`
+- Live theme customizer: color pickers, font selector, logo upload, radius/shadow intensity sliders — saved via `SettingsController` to DB, rendered as CSS variables on load (same pattern Refresh Theme uses)
+- Named preset system: ship 3-4 built-in premium presets (e.g. "Midnight," "Aurora," "Slate," "Sunset") so buyers get instant variety without manual tuning, plus export/import custom presets as JSON
+- Node/server overview cards restyled with usage-at-a-glance visuals, sparkline previews per node
+- AI usage dashboard (§3.3) showing call volume and per-model breakdown
+
+---
+
+## 3. AI Features (the differentiator vs. Nebula)
+
+### 3.1 AI Server Fixer
+**Trigger:** Button on the server console page ("Diagnose with AI").
+**Flow:**
+1. Frontend JS (`theme.js`) captures the last N lines of console output (already available client-side via the existing console websocket buffer — no extra Wings/daemon access needed).
+2. POST to `AiFixerController` (your own Blueprint PHP endpoint) with the log snippet + server egg/type context.
+3. `MonkeyCodeClient` forwards this as a prompt to monkeycode-ai.net (DeepSeek V4 Flash for speed on short diagnostic queries; allow Qwen 3.5 Plus/3.8 as a toggle for deeper analysis).
+4. Response parsed into: **likely cause**, **suggested fix** (plain text + optional exact command/config change), **confidence note**.
+5. Rendered in a modal/panel next to the console — never auto-applied; always a suggestion the user confirms.
+
+### 3.2 AI Resource Optimizer
+**Trigger:** Button on server overview or a scheduled admin digest.
+**Flow:**
+1. Pull existing resource usage stats (CPU/RAM/disk history) already exposed by Pterodactyl's API.
+2. Send summarized stats + server type to monkeycode-ai.net.
+3. Get back plain-language suggestions (e.g. "RAM allocation is consistently under 40% utilized — consider downsizing," or JVM flag tuning suggestions for Minecraft eggs).
+4. Surface as a dismissible card, not a forced action.
+
+### 3.3 Implementation notes
+- All AI calls happen server-side (PHP → monkeycode-ai.net), never expose API keys to the client JS.
+- Rate-limit per server/user to control inference cost.
+- Log requests/responses to a small DB table for abuse monitoring and to let you tune prompts later.
+- Make the AI provider model swappable per install (admin setting: which of your monkeycode-ai.net models to use) — this becomes a premium/pro toggle if you tier the theme.
+
+---
+
+## 4. Additional Premium Features (beyond AI + restyle)
+
+These round the theme out into a full "premium tier" product rather than just a skin:
+
+- **Server search/filter/favorites:** fuzzy search across server list, pin favorites to top, filter by node/status/egg type
+- **Announcements/changelog widget:** admin-authored banner or feed shown on client dashboard (Markdown-supported, matches Nebula's alert feature but with Markdown formatting)
+- **Custom footer/socials bar:** configurable links (Discord, website, support) injected into panel footer
+- **File manager UI polish:** syntax-highlighted code preview, drag-and-drop upload with progress bar, breadcrumb navigation restyle
+- **Backup manager polish:** visual timeline of backups instead of a flat list, one-click restore confirmation modal
+- **Notification center:** bell icon with dropdown for server events (crash, backup complete, AI suggestion available) — client-side only, using existing websocket events
+- **Theme marketplace hook (optional, future):** settings page section that can pull additional preset packs from a JSON manifest URL you host, so you can push new presets without a full extension update
+- **White-label mode:** a single settings toggle that hides all "powered by / theme name" branding — natural premium/pro tier gate if you sell licenses
+- **Onboarding tour:** first-login walkthrough highlighting the AI Fixer/Optimizer buttons and command palette, so buyers immediately see the differentiators
+
+## 5. Suggested Build Order
+
+1. Fork NookTheme → strip its visual assets, keep build tooling + `conf.yml` skeleton
+2. Rebuild color system, typography, component styling from scratch (this is the bulk of "premium look" work)
+3. Ship v1 as a pure visual theme, test install/uninstall cleanly on a live panel
+4. Add admin customizer settings page + DB-backed theme config
+5. Build `MonkeyCodeClient` service + the two AI endpoints
+6. Wire AI Fixer button into console page, AI Optimizer card into server overview
+7. Polish: keyboard shortcuts, animations, mobile responsiveness
+
+---
+
+## 6. Handoff Prompt for Code Generation (monkeycode-ai.net, run with Qwen 3.8)
+
+> Build a Pterodactyl Blueprint extension (PHP + Blade + vanilla JS/React injection, per Blueprint framework conventions) implementing the premium theme and AI features described in this spec. Use NookTheme's open-source repo structure as the technical scaffold for `conf.yml`, controller registration, and asset pipeline, but write all CSS/JS/PHP logic and visual design fully from scratch — do not copy NookTheme's styling or Nebula's design, as Nebula's source is proprietary and unavailable.
+>
+> The theme must feel premium and high-quality, not a default color-swap: implement a full design token system (color scale, elevation/shadow scale, radius scale, spacing grid, dual font pairing) per §2.1, consistent micro-interactions and motion per §2.2, skeleton loading states, and empty-state illustrations. Ship at least 3 built-in color presets.
+>
+> Implement `MonkeyCodeClient.php` as a thin HTTP wrapper around the monkeycode-ai.net chat completions endpoint, model selectable per-feature between DeepSeek V4 Flash (AI Fixer) and Qwen 3.5 Plus/3.8 (AI Optimizer), configurable from the admin settings page.
+>
+> Follow the complete folder structure in §1, the full UI scope in §2, the AI feature flows in §3, and the additional feature list in §4 exactly. Build in the phased order given in §5, delivering one phase per response so each can be reviewed before continuing.
