@@ -1,0 +1,263 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Primus · Client Panel Theme
+   Injected into the Pterodactyl React bundle via conf.yml `dashboard.css`.
+   All rules are wrapped in :where() so the token system can override them
+   from the admin customizer without specificity wars.
+   Pairing: tokens.css + animations.css are shipped through
+   dashboard/wrapper.blade.php to stay outside the React bundle.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* ── document frame ───────────────────────────────────────────────────── */
+:where(html),
+:where(body) {
+  background: var(--pr-page);
+  color: var(--pr-text-primary);
+  font-family: var(--pr-font-ui);
+  font-size: var(--pr-text-base);
+  font-weight: var(--pr-font-weight-normal);
+  letter-spacing: var(--pr-tracking-tight);
+  -webkit-font-smoothing: antialiased;
+}
+
+:where(body):before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--pr-page-gradient);
+}
+
+/* elegant scrollbars */
+:where(*) { scrollbar-width: thin; scrollbar-color: var(--pr-scrollbar-thumb) transparent; }
+:where(*::-webkit-scrollbar) { width: 10px; height: 10px; }
+:where(*::-webkit-scrollbar-thumb) {
+  background: var(--pr-scrollbar-thumb);
+  border-radius: 10px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+:where(*::-webkit-scrollbar-thumb:hover) { background-color: var(--pr-scrollbar-thumb-hover); background-clip: content-box; }
+:where(*::-webkit-scrollbar-track) { background: transparent; }
+
+/* selection */
+:where(::selection) { background: var(--pr-accent-weak); color: var(--pr-accent); }
+
+/* ── typography ───────────────────────────────────────────────────────── */
+:where(h1), :where(h2), :where(h3) {
+  font-family: var(--pr-font-display);
+  font-weight: var(--pr-font-weight-bold);
+  letter-spacing: var(--pr-tracking-tight);
+  color: var(--pr-text-primary);
+}
+
+/* ── cards & boxes (server list rows, feature cards) ──────────────────── */
+:where(div[class*="Card"], div[class*="Container"]):has(> div[class*="CardHeader"]) {
+  background: var(--pr-surface);
+  border: var(--pr-border-width) solid var(--pr-border);
+  border-radius: var(--pr-radius-lg);
+  box-shadow: var(--pr-shadow-1);
+  transition: border-color var(--pr-dur-2) var(--pr-ease),
+    box-shadow var(--pr-dur-2) var(--pr-ease),
+    transform var(--pr-dur-2) var(--pr-ease);
+}
+
+/* server row hover-lift */
+:where(a[class*="ServerRowContainer"], a[class*="ServerRow"]):hover div {
+  border-color: var(--pr-border-strong);
+}
+
+/* ── buttons ──────────────────────────────────────────────────────────── */
+:where(button, [role="button"], a[class*="Button"]) {
+  border-radius: var(--pr-radius-md);
+  font-weight: var(--pr-font-weight-medium);
+  transition: transform var(--pr-dur-1) var(--pr-ease),
+    box-shadow var(--pr-dur-1) var(--pr-ease),
+    background-color var(--pr-dur-1) var(--pr-ease),
+    border-color var(--pr-dur-1) var(--pr-ease),
+    color var(--pr-dur-1) var(--pr-ease);
+}
+:where(button:active, [role="button"]:active) { transform: scale(0.98); }
+:where(button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible) {
+  outline: 2px solid var(--pr-accent);
+  outline-offset: 1px;
+}
+
+/* primary CTA styling */
+:where(button[data-primus-btn="primary"], [class*="btn-primary"], [class*="Button-primary"], a[class*="ButtonPrimary"]) {
+  background: var(--pr-accent) !important;
+  border: 0 !important;
+  color: var(--pr-accent-contrast) !important;
+  box-shadow: var(--pr-shadow-accent);
+}
+:where(button[data-primus-btn="primary"]:hover) {
+  background: var(--pr-accent-strong) !important;
+  box-shadow: var(--pr-shadow-2), var(--pr-shadow-accent);
+  transform: translateY(-1px);
+}
+
+/* danger buttons */
+:where([class*="Button-danger"], [class*="ButtonDanger"], button[data-primus-btn="danger"]) {
+  background: var(--pr-danger) !important;
+  border: 0 !important;
+  color: #fff !important;
+}
+
+/* ── inputs ───────────────────────────────────────────────────────────── */
+:where(input, select, textarea) {
+  background: var(--pr-surface-sunken) !important;
+  border: var(--pr-border-width) solid var(--pr-border) !important;
+  border-radius: var(--pr-radius-md) !important;
+  color: var(--pr-text-primary) !important;
+  transition: border-color var(--pr-dur-1) var(--pr-ease),
+    box-shadow var(--pr-dur-1) var(--pr-ease);
+}
+:where(input:focus, select:focus, textarea:focus) {
+  border-color: var(--pr-accent) !important;
+  box-shadow: 0 0 0 3px var(--pr-accent-weak) !important;
+}
+:where(label) { color: var(--pr-text-secondary); font-weight: var(--pr-font-weight-medium); }
+
+/* ── tables (admin & client) ──────────────────────────────────────────── */
+:where(table) { border-collapse: separate; border-spacing: 0; }
+:where(th) {
+  color: var(--pr-text-muted);
+  text-transform: uppercase;
+  font-size: var(--pr-text-xs);
+  font-weight: var(--pr-font-weight-bold);
+  letter-spacing: 0.06em;
+}
+:where(tbody tr) {
+  border-bottom: 1px solid var(--pr-border);
+  transition: background-color var(--pr-dur-1) var(--pr-ease);
+}
+:where(tbody tr:hover) { background: var(--pr-surface-sunken); }
+
+/* ── modal overlays ───────────────────────────────────────────────────── */
+:where(div[class*="Modal"], dialog) {
+  background: var(--pr-surface) !important;
+  border: var(--pr-border-width) solid var(--pr-border) !important;
+  border-radius: var(--pr-radius-xl) !important;
+  box-shadow: var(--pr-shadow-5) !important;
+  animation: pr-scale-in var(--pr-dur-2) var(--pr-ease-spring) both;
+}
+:where(div[class*="ModalMask"], div[class*="Backdrop"]) {
+  background: rgba(5, 6, 14, 0.62) !important;
+  backdrop-filter: blur(6px) saturate(1.1);
+  animation: pr-fade-in var(--pr-dur-2) var(--pr-ease) both;
+}
+
+/* ── console ──────────────────────────────────────────────────────────── */
+:where(div[class*="TerminalContainer"], div[id="terminal"]) {
+  background: var(--pr-terminal-bg) !important;
+  border: var(--pr-border-width) solid var(--pr-terminal-border) !important;
+  border-radius: var(--pr-radius-lg) !important;
+  font-family: var(--pr-font-mono) !important;
+}
+:where(div[class*="console"]) :where(span) { font-family: inherit; }
+:where(.xterm) { padding: var(--pr-space-3) !important; }
+:where(.xterm .xterm-rows) { color: var(--pr-text-primary); }
+
+/* command input under the console */
+:where(div[class*="CommandInput"], form[class*="command"]) input {
+  background: var(--pr-surface-sunken) !important;
+  font-family: var(--pr-font-mono);
+}
+
+/* ── nav bar & sub nav ────────────────────────────────────────────────── */
+:where(header[class*="NavBar"], header[class*="Navigation"]) {
+  background: var(--pr-surface-header) !important;
+  backdrop-filter: blur(12px) saturate(1.3);
+  border-bottom: 1px solid var(--pr-border) !important;
+}
+:where(a[class*="Navlink"], a[class*="NavLink"]) {
+  border-radius: var(--pr-radius-md);
+  transition: background-color var(--pr-dur-1) var(--pr-ease),
+    color var(--pr-dur-1) var(--pr-ease);
+}
+:where(a[class*="Navlink"]:hover) { background: var(--pr-surface-sunken); color: var(--pr-text-primary); }
+:where(a[class*="NavlinkActive"], a[aria-current="page"]) {
+  color: var(--pr-accent) !important;
+}
+:where(a[class*="NavlinkActive"], a[aria-current="page"]) {
+  background: var(--pr-accent-weak) !important;
+}
+
+/* tab-style sub navigation */
+:where(div[class*="SubNavigation"], div[class*="SubNav"]) {
+  gap: var(--pr-space-1);
+}
+
+/* ── stat blocks (RAM/CPU/Disk bars) ──────────────────────────────────── */
+:where(div[class*="Stat"] > div[class*="Bar"], div[class*="ProgressBar"]) {
+  overflow: hidden;
+  border-radius: var(--pr-radius-pill);
+  background: var(--pr-surface-sunken);
+}
+:where(div[class*="Stat"] > div[class*="Bar"] > div, div[class*="ProgressBar"] > div) {
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--pr-accent), var(--pr-accent-strong)) !important;
+  transition: width var(--pr-dur-3) var(--pr-ease);
+}
+
+/* colored badges / chips */
+:where([class*="Badge"], [class*="Chip"]) {
+  border-radius: var(--pr-radius-pill) !important;
+  font-weight: var(--pr-font-weight-medium);
+  font-size: var(--pr-text-xs) !important;
+}
+
+/* ── tooltips ─────────────────────────────────────────────────────────── */
+:where([role="tooltip"], .tooltip) {
+  background: var(--pr-surface-raised) !important;
+  color: var(--pr-text-primary) !important;
+  border: 1px solid var(--pr-border-strong) !important;
+  border-radius: var(--pr-radius-sm) !important;
+  box-shadow: var(--pr-shadow-3) !important;
+  padding: 6px 10px !important;
+  font-size: var(--pr-text-xs) !important;
+  animation: pr-fade-in var(--pr-dur-1) var(--pr-ease) both;
+}
+
+/* ── dropdown menus ───────────────────────────────────────────────────── */
+:where(div[class*="Dropdown"], ul[class*="Menu"], div[class*="Popover"], details > div[class*="MenuContainer"]) {
+  background: var(--pr-surface-raised) !important;
+  border: 1px solid var(--pr-border-strong) !important;
+  border-radius: var(--pr-radius-lg) !important;
+  box-shadow: var(--pr-shadow-4) !important;
+  animation: pr-scale-in var(--pr-dur-2) var(--pr-ease-spring) both;
+}
+:where(div[class*="Dropdown"] a:hover, div[class*="Dropdown"] button:hover) { background: var(--pr-surface-sunken) !important; }
+
+/* ── file manager rows ────────────────────────────────────────────────── */
+:where(div[class*="FileRow"], tr[class*="file"]) {
+  transition: background-color var(--pr-dur-1) var(--pr-ease);
+  border-radius: var(--pr-radius-sm);
+}
+:where(div[class*="FileRow"]:hover, tr[class*="file"]:hover) { background: var(--pr-surface-sunken); }
+
+/* code editors (files page) */
+:where(.ace_editor, .cm-editor) {
+  border-radius: var(--pr-radius-md);
+  border: 1px solid var(--pr-border) !important;
+}
+
+/* ── schedule/backup timeline frames are styled from widgets.js directly ── */
+
+/* ── spinner → branded ring ───────────────────────────────────────────── */
+:where([class*="spinner"], [class*="Spinner"]):not(.pr-toast) {
+  border-color: var(--pr-accent-weak) !important;
+  border-top-color: var(--pr-accent) !important;
+}
+
+/* empty state text wrappers */
+:where(p[class*="empty"], div[class*="EmptyState"]) {
+  color: var(--pr-text-muted);
+}
+
+/* footer link spacing handled by footer-bar widget */
+
+/* ── print safety ─────────────────────────────────────────────────────── */
+@media print {
+  :where(body):before { display: none; }
+}

@@ -1,0 +1,322 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Primus · Admin customizer (prx-*)
+   Styles the /admin/extensions/primus settings page. Built on the shared
+   token system so it inherits presets/overrides live.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.primus-admin {
+  color: var(--pr-text-primary);
+  font-family: var(--pr-font-ui);
+  padding: var(--pr-space-2) var(--pr-space-1) var(--pr-space-16);
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* ── status alert ─────────────────────────────────────────────────────── */
+.prx-alert {
+  display: flex;
+  align-items: center;
+  gap: var(--pr-space-2);
+  padding: var(--pr-space-3) var(--pr-space-4);
+  border-radius: var(--pr-radius-lg);
+  border: 1px solid;
+  font-size: var(--pr-text-base);
+  margin-bottom: var(--pr-space-5);
+  animation: pr-fade-slide-in var(--pr-dur-2) var(--pr-ease) both;
+}
+.prx-alert-ok {
+  background: var(--pr-success-weak);
+  border-color: var(--pr-success);
+  color: var(--pr-text-primary);
+}
+.prx-alert-warn {
+  background: var(--pr-warning-weak);
+  border-color: var(--pr-warning);
+  color: var(--pr-text-primary);
+}
+
+/* ── tab bar ──────────────────────────────────────────────────────────── */
+.prx-tabbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pr-space-1);
+  padding: var(--pr-space-1);
+  background: var(--pr-surface-sunken);
+  border: 1px solid var(--pr-border);
+  border-radius: var(--pr-radius-lg);
+  margin-bottom: var(--pr-space-5);
+  position: sticky;
+  top: var(--pr-space-3);
+  z-index: 40;
+  backdrop-filter: blur(8px);
+}
+.prx-tab {
+  flex: 1 0 auto;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--pr-text-muted);
+  font: inherit;
+  font-weight: var(--pr-font-weight-medium);
+  padding: 9px 14px;
+  border-radius: var(--pr-radius-md);
+  cursor: pointer;
+  transition: background var(--pr-dur-1) var(--pr-ease), color var(--pr-dur-1) var(--pr-ease);
+}
+.prx-tab:hover { color: var(--pr-text-primary); background: var(--pr-surface); }
+.prx-tab.is-active {
+  background: var(--pr-accent-weak);
+  color: var(--pr-accent);
+  font-weight: var(--pr-font-weight-bold);
+}
+
+/* ── panels / layout ──────────────────────────────────────────────────── */
+.prx-panel {
+  background: var(--pr-surface);
+  border: 1px solid var(--pr-border);
+  border-radius: var(--pr-radius-xl);
+  padding: var(--pr-space-6);
+  box-shadow: var(--pr-shadow-1);
+  animation: pr-fade-slide-in var(--pr-dur-2) var(--pr-ease) both;
+}
+.prx-columns { display: grid; grid-template-columns: 1fr 1fr; gap: var(--pr-space-8); }
+.prx-col { min-width: 0; }
+@media (max-width: 860px) { .prx-columns { grid-template-columns: 1fr; } }
+
+.prx-h {
+  font-family: var(--pr-font-display);
+  font-weight: var(--pr-font-weight-bold);
+  font-size: var(--pr-text-md);
+  color: var(--pr-text-primary);
+  margin: 0 0 var(--pr-space-4);
+  letter-spacing: var(--pr-tracking-tight);
+}
+.prx-field { margin-bottom: var(--pr-space-4); }
+.prx-field > label {
+  display: block;
+  font-size: var(--pr-text-sm);
+  font-weight: var(--pr-font-weight-medium);
+  color: var(--pr-text-secondary);
+  margin-bottom: 6px;
+}
+.prx-field small.prx-hint, .prx-hint {
+  color: var(--pr-text-muted);
+  font-size: var(--pr-text-xs);
+}
+.prx-value { color: var(--pr-accent); font-weight: var(--pr-font-weight-bold); }
+
+/* inputs reuse the admin.css form-control reset */
+.prx-field input[type="text"],
+.prx-field input[type="password"],
+.prx-field input[type="number"],
+.prx-field select,
+.prx-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  background: var(--pr-surface-sunken);
+  border: 1px solid var(--pr-border);
+  border-radius: var(--pr-radius-md);
+  color: var(--pr-text-primary);
+  padding: 9px 12px;
+  transition: border-color var(--pr-dur-1) var(--pr-ease), box-shadow var(--pr-dur-1) var(--pr-ease);
+}
+.prx-field input:focus, .prx-field select:focus, .prx-field textarea:focus {
+  outline: none;
+  border-color: var(--pr-accent);
+  box-shadow: 0 0 0 3px var(--pr-accent-weak);
+}
+.prx-field input[type="range"] { width: 100%; accent-color: var(--pr-accent); }
+.prx-field textarea { min-height: 88px; resize: vertical; font-family: var(--pr-font-mono); font-size: var(--pr-text-sm); }
+
+.prx-colorrow { display: flex; gap: var(--pr-space-2); align-items: center; }
+.prx-colorrow input[type="color"] {
+  inline-size: 44px;
+  block-size: 38px;
+  padding: 3px;
+  border: 1px solid var(--pr-border);
+  border-radius: var(--pr-radius-md);
+  background: var(--pr-surface-sunken);
+  cursor: pointer;
+}
+.prx-colorrow input[type="text"] { flex: 1; font-family: var(--pr-font-mono); text-transform: lowercase; }
+
+.prx-check {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: var(--pr-text-sm);
+  color: var(--pr-text-secondary);
+  padding: 7px 0;
+  cursor: pointer;
+}
+.prx-check input { accent-color: var(--pr-accent); width: 16px; height: 16px; }
+.prx-check:hover { color: var(--pr-text-primary); }
+
+/* ── preset cards ─────────────────────────────────────────────────────── */
+.prx-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--pr-space-4);
+  margin-bottom: var(--pr-space-5);
+}
+.prx-presetcard {
+  position: relative;
+  display: block;
+  text-align: left;
+  background: var(--pr-surface-sunken);
+  border: 1px solid var(--pr-border);
+  border-radius: var(--pr-radius-lg);
+  padding: var(--pr-space-3);
+  cursor: pointer;
+  transition: transform var(--pr-dur-2) var(--pr-ease), box-shadow var(--pr-dur-2) var(--pr-ease),
+    border-color var(--pr-dur-2) var(--pr-ease);
+}
+.prx-presetcard:hover { transform: translateY(-2px); box-shadow: var(--pr-shadow-2); border-color: var(--pr-border-strong); }
+.prx-presetcard.is-active { border-color: var(--pr-accent); box-shadow: 0 0 0 3px var(--pr-accent-weak); }
+.prx-presetcard__swatch {
+  display: block;
+  height: 58px;
+  border-radius: var(--pr-radius-md);
+  margin-bottom: 10px;
+}
+.prx-presetcard__meta { display: flex; flex-direction: column; gap: 2px; }
+.prx-presetcard__name { font-weight: var(--pr-font-weight-bold); color: var(--pr-text-primary); }
+.prx-presetcard__sub { font-size: var(--pr-text-xs); color: var(--pr-text-muted); }
+.prx-presetcard__active {
+  position: absolute;
+  top: var(--pr-space-2);
+  right: var(--pr-space-2);
+  font-size: var(--pr-text-xs);
+  font-weight: var(--pr-font-weight-bold);
+  color: var(--pr-accent-contrast);
+  background: var(--pr-accent);
+  padding: 2px 8px;
+  border-radius: var(--pr-radius-pill);
+}
+
+/* ── buttons / rows ───────────────────────────────────────────────────── */
+.prx-row { display: flex; align-items: center; gap: var(--pr-space-3); flex-wrap: wrap; }
+.prx-row-right { margin-left: auto; display: flex; gap: var(--pr-space-2); flex-wrap: wrap; }
+.prx-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: inherit;
+  font-weight: var(--pr-font-weight-medium);
+  color: var(--pr-accent-contrast);
+  background: var(--pr-accent);
+  border: 1px solid var(--pr-accent);
+  border-radius: var(--pr-radius-md);
+  padding: 9px 16px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform var(--pr-dur-1) var(--pr-ease), background var(--pr-dur-1) var(--pr-ease),
+    box-shadow var(--pr-dur-1) var(--pr-ease);
+}
+.prx-btn:hover { background: var(--pr-accent-strong); transform: translateY(-1px); box-shadow: var(--pr-shadow-accent); }
+.prx-btn:active { transform: scale(0.98); }
+.prx-btn-ghost {
+  background: var(--pr-surface-sunken);
+  border: 1px solid var(--pr-border);
+  color: var(--pr-text-secondary);
+}
+.prx-btn-ghost:hover { color: var(--pr-text-primary); border-color: var(--pr-border-strong); background: var(--pr-surface-sunken); box-shadow: none; }
+.prx-btn-primary { background: var(--pr-accent); border-color: var(--pr-accent); color: var(--pr-accent-contrast); }
+.prx-file-label { cursor: pointer; }
+
+/* ── save bar ─────────────────────────────────────────────────────────── */
+.prx-savebar {
+  position: sticky;
+  bottom: var(--pr-space-4);
+  margin-top: var(--pr-space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--pr-space-3);
+  padding: var(--pr-space-3) var(--pr-space-5);
+  background: var(--pr-surface-raised);
+  border: 1px solid var(--pr-border-strong);
+  border-radius: var(--pr-radius-xl);
+  box-shadow: var(--pr-shadow-3);
+  backdrop-filter: blur(12px);
+}
+.prx-savebar-hint { font-size: var(--pr-text-sm); color: var(--pr-text-muted); }
+.prx-savebar .prx-save { margin-left: auto; }
+#prx-save { margin-left: auto; }
+
+/* ── toast ────────────────────────────────────────────────────────────── */
+.prx-toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--pr-space-8);
+  transform: translateX(-50%);
+  padding: 11px 18px;
+  border-radius: var(--pr-radius-lg);
+  font-weight: var(--pr-font-weight-medium);
+  box-shadow: var(--pr-shadow-4);
+  z-index: 1000;
+  background: var(--pr-surface-raised);
+  border: 1px solid var(--pr-border-strong);
+  color: var(--pr-text-primary);
+  animation: pr-scale-in var(--pr-dur-2) var(--pr-ease-spring) both;
+}
+.prx-toast-ok { border-color: var(--pr-success); background: var(--pr-success-weak); }
+.prx-toast-error { border-color: var(--pr-danger); background: var(--pr-danger-weak); }
+.prx-toast-warn { border-color: var(--pr-warning); background: var(--pr-warning-weak); }
+
+/* ── usage dashboard ──────────────────────────────────────────────────── */
+.prx-usage-empty { color: var(--pr-text-muted); padding: var(--pr-space-6); text-align: center; }
+.prx-usage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--pr-space-4);
+  margin-bottom: var(--pr-space-5);
+}
+.prx-usage-tile {
+  background: var(--pr-surface-sunken);
+  border: 1px solid var(--pr-border);
+  border-radius: var(--pr-radius-lg);
+  padding: var(--pr-space-4);
+}
+.prx-usage-num {
+  font-family: var(--pr-font-display);
+  font-size: var(--pr-text-xl);
+  font-weight: var(--pr-font-weight-bold);
+  color: var(--pr-accent);
+}
+.prx-usage-tile .prx-label, .prx-usage-tile small {
+  display: block;
+  color: var(--pr-text-muted);
+  font-size: var(--pr-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.prx-bar {
+  display: block;
+  height: 8px;
+  border-radius: var(--pr-radius-pill);
+  background: var(--pr-surface-sunken);
+  border: 1px solid var(--pr-border);
+  overflow: hidden;
+  margin-top: 4px;
+}
+.prx-bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--pr-accent), var(--pr-accent-strong)); border-radius: inherit; }
+.prx-usage-foot { color: var(--pr-text-muted); font-size: var(--pr-text-sm); }
+
+.prx-table { width: 100%; border-collapse: collapse; font-size: var(--pr-text-sm); }
+.prx-table th {
+  text-align: left;
+  color: var(--pr-text-muted);
+  text-transform: uppercase;
+  font-size: var(--pr-text-xs);
+  letter-spacing: 0.06em;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--pr-border-strong);
+}
+.prx-table td { padding: 9px 12px; border-bottom: 1px solid var(--pr-border); color: var(--pr-text-secondary); }
+.prx-table tr:hover td { background: var(--pr-surface-sunken); }
+
+/* ── validation states ────────────────────────────────────────────────── */
+.prx-invalid, input.prx-invalid { border-color: var(--pr-danger) !important; }
+.prx-warn { color: var(--pr-warning); }

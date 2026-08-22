@@ -1,0 +1,26 @@
+{
+  "id": "midnight",
+  "name": "Midnight",
+  "description": "The Primus default: deep indigo night sky with a violet accent glow.",
+  "built_in": true,
+  "swatch": { "a": "#6d5df6", "b": "#8577ff" },
+  "appearance": {
+    "theme": "dark",
+    "vibrance": "normal"
+  },
+  "overrides": {
+    "--pr-accent": "#6d5df6",
+    "--pr-accent-strong": "#8577ff",
+    "--pr-accent-weak": "rgba(109, 93, 246, 0.16)",
+    "--pr-accent-contrast": "#ffffff",
+    "--pr-bg-950": "#0a0b1a",
+    "--pr-bg-900": "#12142a",
+    "--pr-bg-800": "#1c2039",
+    "--pr-page": "#0a0b1a",
+    "--pr-surface": "#12142a",
+    "--pr-surface-raised": "#1c2039",
+    "--pr-surface-sunken": "#0a0b1a",
+    "--pr-surface-header": "rgba(13, 15, 32, 0.82)",
+    "--pr-page-gradient": "radial-gradient(1200px 500px at 85% -10%, rgba(109, 93, 246, 0.16), transparent 60%), radial-gradient(900px 420px at -10% 0%, rgba(56, 116, 203, 0.08), transparent 55%)"
+  }
+}

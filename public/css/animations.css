@@ -1,0 +1,128 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Primus · Motion & Micro-interactions
+   Loaded alongside tokens.css by dashboard.wrapper (client) and admin
+   wrapper (admin). @import order: tokens → animations → theme.
+   ───────────────────────────────────────────────────────────────────────── */
+
+@keyframes pr-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pr-fade-slide-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pr-fade-slide-in-right {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pr-scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pr-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  70% { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+@keyframes pr-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@keyframes pr-pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
+  70% { box-shadow: 0 0 0 5px transparent; opacity: 0.75; }
+}
+
+@keyframes pr-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pr-toast-in {
+  from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes pr-toast-out {
+  to { opacity: 0; transform: translateX(16px); }
+}
+
+@keyframes pr-typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-3px); opacity: 1; }
+}
+
+/* ── route / page transition applied by theme.js to <main> wrappers ───── */
+.pr-page-enter {
+  animation: pr-fade-slide-in var(--pr-dur-3) var(--pr-ease) both;
+}
+
+/* ── skeleton loaders ─────────────────────────────────────────────────── */
+.pr-skeleton {
+  border-radius: var(--pr-radius-md);
+  background: linear-gradient(
+    100deg,
+    var(--pr-skeleton-base) 40%,
+    var(--pr-skeleton-sheen) 50%,
+    var(--pr-skeleton-base) 60%
+  );
+  background-size: 200% 100%;
+  animation: pr-shimmer 1.6s linear infinite;
+}
+.pr-skeleton--text { height: 12px; border-radius: var(--pr-radius-pill); }
+.pr-skeleton--text + .pr-skeleton--text { margin-top: var(--pr-space-2); }
+
+/* ── hover lift for cards / buttons ───────────────────────────────────── */
+.pr-lift {
+  transition: transform var(--pr-dur-2) var(--pr-ease),
+    box-shadow var(--pr-dur-2) var(--pr-ease),
+    border-color var(--pr-dur-2) var(--pr-ease);
+  will-change: transform;
+}
+.pr-lift:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: var(--pr-shadow-3);
+}
+
+/* ── status badge dot ─────────────────────────────────────────────────── */
+.pr-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex: none;
+}
+.pr-status-dot[data-state="running"],
+.pr-status-dot[data-state="online"] {
+  color: var(--pr-success);
+  background: var(--pr-success);
+  animation: pr-pulse-dot 1.8s var(--pr-ease) infinite;
+}
+.pr-status-dot[data-state="starting"],
+.pr-status-dot[data-state="installing"],
+.pr-status-dot[data-state="restoring"] {
+  color: var(--pr-warning);
+  background: var(--pr-warning);
+  animation: pr-pulse-dot 1.2s var(--pr-ease) infinite;
+}
+.pr-status-dot[data-state="stopping"],
+.pr-status-dot[data-state="offline"],
+.pr-status-dot[data-state="error"] {
+  background: var(--pr-danger);
+}
+.pr-status-dot[data-state="stopped"] {
+  background: var(--pr-text-faint);
+}
+
+/* ── generic utilities animated widgets use ───────────────────────────── */
+.pr-fade-in { animation: pr-fade-in var(--pr-dur-2) var(--pr-ease) both; }
+.pr-slide-up { animation: pr-fade-slide-in var(--pr-dur-3) var(--pr-ease) both; }
+.pr-slide-right { animation: pr-fade-slide-in-right var(--pr-dur-3) var(--pr-ease) both; }
+.pr-scale-in { animation: pr-scale-in var(--pr-dur-2) var(--pr-ease-spring) both; }
+.pr-pop { animation: pr-pop var(--pr-dur-3) var(--pr-ease-spring) both; }

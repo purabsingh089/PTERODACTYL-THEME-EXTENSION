@@ -1,0 +1,37 @@
+# Components.yml — areas of the Pterodactyl client panel that Primus extends.
+# https://blueprint.zip/docs/configs/componentsyml
+#
+# Every placement renders the lightweight PrimusMarker component, which emits
+# an empty, uniquely-named anchor element. The vanilla-JS engine (shipped via
+# dashboard/wrapper.blade.php) uses the page structure for its mutations, and
+# these anchors double as stable integration points for future React-native
+# upgrades of individual widgets.
+
+Navigation:
+  NavigationBar:
+    AfterNavigation: "PrimusMarker"
+  SubNavigation:
+    AdditionalServerItems: "PrimusMarker"
+
+Dashboard:
+  Global:
+    AfterSection: "PrimusMarker"
+  Serverlist:
+    BeforeContent: "PrimusMarker"
+    ServerRow:
+      AfterEntryName: "PrimusMarker"
+      ResourceLimits: "PrimusMarker"
+
+Server:
+  Terminal:
+    BeforeContent: "PrimusMarker"
+    AfterContent: "PrimusMarker"
+  Files:
+    Browse:
+      BeforeContent: "PrimusMarker"
+  Backups:
+    BeforeContent: "PrimusMarker"
+
+Account:
+  Overview:
+    AfterContent: "PrimusMarker"

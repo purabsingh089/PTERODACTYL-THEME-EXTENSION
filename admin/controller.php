@@ -1,0 +1,69 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Pterodactyl\Http\Controllers\Admin\Extensions\primus;
+
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
+use Illuminate\View\Factory as ViewFactory;
+use Pterodactyl\BlueprintFramework\Libraries\ExtensionLibrary\Admin\BlueprintAdminLibrary;
+use Pterodactyl\Http\Controllers\Controller;
+use {appcontext}\Models\ThemeSetting;
+use {appcontext}\Services\MonkeyCodeClient;
+use {appcontext}\Services\ThemePresetManager;
+
+/**
+ * Custom admin controller for the Primus extension.
+ * Blueprint dispatches here for /admin/extensions/primus.
+ */
+class primusExtensionController extends Controller
+{
+    public function __construct(
+        private ViewFactory $view,
+        private BlueprintAdminLibrary $blueprint,
+        private ThemePresetManager $presets
+    ) {
+    }
+
+    public function index(Request $request): View
+    {
+        return $this->view->make('admin.extensions.primus.view')->with([
+            'version' => '{version}',
+            'identifier' => '{identifier}',
+            'active_preset' => $this->presets->active(),
+            'presets' => $this->presets->all(),
+            'models' => MonkeyCodeClient::MODELS,
+            'settings' => [
+                'appearance' => (array) ThemeSetting::get('appearance', []),
+                'overrides' => (array) ThemeSetting::get('overrides', []),
+                'footer' => ThemeSetting::get('footer', ['enabled' => true, 'label' => '', 'links' => []]),
+                'announcements' => ThemeSetting::get('announcements', ['text' => '']),
+                'ai' => [
+                    'api_key_configured' => ThemeSetting::get('ai.api_key', '') !== '',
+                    'base_url' => ThemeSetting::get('ai.base_url', MonkeyCodeClient::DEFAULT_BASE_URL),
+                    'models' => [
+                        'fix' => ThemeSetting::get('ai.models.fix', 'deepseek-v4-flash'),
+                        'optimize' => ThemeSetting::get('ai.models.optimize', 'qwen3.5-plus'),
+                        'notes' => ThemeSetting::get('ai.models.notes', 'deepseek-v4-flash'),
+                    ],
+                    'rate_limit_per_hour' => (int) ThemeSetting::get('ai.rate_limit_per_hour', 30),
+                    'fixer_enabled' => (bool) ThemeSetting::get('ai.fixer_enabled', true),
+                    'optimizer_enabled' => (bool) ThemeSetting::get('ai.optimizer_enabled', true),
+                ],
+                'shortcuts' => ThemeSetting::get('shortcuts', ['hint' => true]),
+                'quickactions' => ThemeSetting::get('quickactions', ['enabled' => true]),
+            ],
+        ]);
+    }
+
+    /**
+     * Settings persist through the validated XHR endpoint
+     * (/extensions/primus/admin/save); direct POSTs are a no-op redirect so
+     * accidental double submissions cannot double-fire mutations.
+     */
+    public function post(Request $request)
+    {
+        return redirect('/admin/extensions/primus');
+    }
+}
