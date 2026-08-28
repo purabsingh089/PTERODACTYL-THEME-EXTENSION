@@ -257,6 +257,125 @@
 
 /* footer link spacing handled by footer-bar widget */
 
+/* ── Tailwind override layer ─────────────────────────────────────────── */
+#app .bg-neutral-800, #app .bg-neutral-900, #app .bg-neutral-700,
+#app [class*="bg-neutral-800"], #app [class*="bg-neutral-900"] {
+  background-color: var(--pr-surface) !important;
+}
+#app .bg-neutral-600, #app [class*="bg-neutral-600"] {
+  background-color: var(--pr-surface-raised) !important;
+}
+#app .text-neutral-400, #app [class*="text-neutral-400"] {
+  color: var(--pr-text-muted) !important;
+}
+#app .text-neutral-300, #app [class*="text-neutral-300"] {
+  color: var(--pr-text-secondary) !important;
+}
+#app .text-neutral-200, #app .text-white, #app [class*="text-neutral-200"], #app [class*="text-white"] {
+  color: var(--pr-text-primary) !important;
+}
+#app .border-neutral-700, #app [class*="border-neutral-700"] {
+  border-color: var(--pr-border) !important;
+}
+#app .border-neutral-600, #app [class*="border-neutral-600"] {
+  border-color: var(--pr-border-strong) !important;
+}
+#app a[class*="text-blue-"], #app button[class*="text-blue-"], #app [class*="text-cyan-"] {
+  color: var(--pr-accent) !important;
+}
+#app [class*="bg-blue-"], #app [class*="bg-cyan-"] {
+  background-color: var(--pr-accent) !important;
+}
+#app [class*="hover:bg-neutral-700"]:hover, #app [class*="hover:bg-neutral-600"]:hover {
+  background-color: var(--pr-surface-sunken) !important;
+}
+#app div[class*="col-span-4"][class*="lg:col-span-3"] {
+  background: var(--pr-surface) !important;
+  border: var(--pr-border-width) solid var(--pr-border) !important;
+  border-radius: var(--pr-radius-lg) !important;
+}
+#app div[class*="order-last"], #app aside {
+  background: transparent !important;
+}
+#app header, #app nav, #app [class*="SubNavigation"], #app [class*="Navigation"] {
+  font-family: var(--pr-font-ui) !important;
+}
+#app h1, #app h2, #app h3, #app h4 {
+  font-family: var(--pr-font-display) !important;
+  color: var(--pr-text-primary) !important;
+}
+#app p, #app span, #app label, #app li, #app td, #app th, #app a {
+  font-family: var(--pr-font-ui) !important;
+}
+#app code, #app pre, #app .xterm, #app [class*="mono"] {
+  font-family: var(--pr-font-mono) !important;
+}
+
+/* ── hard frame overrides (bundle utilities win over :where, so pin these) ─ */
+html {
+  background: var(--pr-page) !important;
+}
+body {
+  background: var(--pr-page) !important;
+  color: var(--pr-text-primary) !important;
+  font-family: var(--pr-font-ui) !important;
+  -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--pr-page-gradient);
+}
+
+/* sub-navigation strip (server sub-nav tabs) */
+#app #SubNavigation, #app [id="SubNavigation"] {
+  background: var(--pr-surface-header) !important;
+  border-bottom: 1px solid var(--pr-border) !important;
+  backdrop-filter: blur(12px) saturate(1.3);
+}
+#app #SubNavigation a, #app #SubNavigation button,
+#app [id="SubNavigation"] a, #app [id="SubNavigation"] button {
+  color: var(--pr-text-secondary) !important;
+}
+#app #SubNavigation a:hover, #app [id="SubNavigation"] a:hover {
+  color: var(--pr-text-primary) !important;
+  background: var(--pr-surface-sunken) !important;
+}
+
+/* websocket "connecting / trouble" banner → themed soft state */
+#app [class*="WebsocketHandler"] {
+  background: var(--pr-info-weak) !important;
+  color: var(--pr-info) !important;
+  border-bottom: 1px solid var(--pr-border) !important;
+}
+#app [class*="WebsocketHandler"] a,
+#app [class*="WebsocketHandler"] button {
+  color: var(--pr-info) !important;
+}
+
+/* right-hand server stats column on console */
+#app div[class*="col-span-4"][class*="lg:col-span-1"] {
+  gap: var(--pr-space-3) !important;
+}
+#app div[class*="col-span-4"][class*="lg:col-span-1"] > div {
+  background: var(--pr-surface) !important;
+  border: var(--pr-border-width) solid var(--pr-border) !important;
+  border-radius: var(--pr-radius-lg) !important;
+  box-shadow: var(--pr-shadow-1) !important;
+}
+#app div[class*="col-span-4"][class*="lg:col-span-1"] > div:hover {
+  border-color: var(--pr-border-strong) !important;
+}
+
+/* content frames on non-console server pages (files/db/schedules/…) */
+#app div[class*="col-span-4"] > div[class*="rounded"],
+#app div[class*="lg:col-span-4"] {
+  border-color: var(--pr-border) !important;
+}
+
 /* ── print safety ─────────────────────────────────────────────────────── */
 @media print {
   :where(body):before { display: none; }

@@ -246,10 +246,15 @@
     if (favs.indexOf(id) >= 0) row.classList.add("is-favorite");
   }
 
+  function isServerCardLink(a) {
+    if (a.closest && a.closest(".pr-quickactions")) return false;
+    if (a.closest && a.closest('nav, [class*="SubNavigation"], [class*="Navigation"], header')) return false;
+    var href = a.getAttribute("href") || "";
+    return !/\/server\/[a-f0-9]+\/(files|console|databases|schedules|users|backups|network|startup|settings|admin|activity)/.test(href);
+  }
+
   function serverRowNodes() {
-    return U.qa('a[href^="/server/"]').filter(function (a) {
-      return !/\/server\/[a-f0-9]+\/(files|console|databases|schedules|users|backups|network|startup|settings|admin)/.test(a.getAttribute("href") || "");
-    });
+    return U.qa('a[href^="/server/"]').filter(isServerCardLink);
   }
 
   function orderServerRows() {
@@ -324,9 +329,9 @@
     var qa = U.el(
       "div",
       "pr-quickactions",
-      '<a title="Open console" href="/server/' + U.esc(id) + '/console"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 7 5 5-5 5"/><path d="M12 17h7"/></svg></a>' +
+      '<a title="Open console" href="/server/' + U.esc(id) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 7 5 5-5 5"/><path d="M12 17h7"/></svg></a>' +
       '<button title="Restart server" type="button" data-pr-send="restart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></button>' +
-      '<a title="AI diagnostics" href="/server/' + U.esc(id) + '/console?primus=diagnose"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.1 6.2L20 10l-5.9 1.8L12 18l-2.1-6.2L4 10l5.9-1.8L12 2z"/></svg></a>'
+      '<a title="AI diagnostics" href="/server/' + U.esc(id) + '?primus=diagnose"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.1 6.2L20 10l-5.9 1.8L12 18l-2.1-6.2L4 10l5.9-1.8L12 2z"/></svg></a>'
     );
     qa.addEventListener("click", function (e) {
       var btn = e.target.closest("[data-pr-send]");
@@ -497,6 +502,7 @@
   P.register({
     each: 'a[href^="/server/"]',
     observe: function (row) {
+      if (!isServerCardLink(row)) return;
       enrichServerRow(row);
       quickActionsOnRow(row);
       orderServerRows();
@@ -513,7 +519,7 @@
     setTimeout(function () {
       decorateEmptyStates();
       timelineifyBackups();
-      if (/\/console/.test(ev.path)) setTimeout(runTour, 1500);
+      if (/\/server\/[a-zA-Z0-9]+\/?$/.test(ev.path)) setTimeout(runTour, 1500);
     }, 700);
   });
 
@@ -525,7 +531,7 @@
       orderServerRows();
       decorateEmptyStates();
       timelineifyBackups();
-      if (/\/console\?primus=diagnose/.test(location.pathname + location.search)) {
+      if (/primus=diagnose/.test(location.pathname + location.search)) {
         P.requestDiagnose = true;
       }
     }, 600);

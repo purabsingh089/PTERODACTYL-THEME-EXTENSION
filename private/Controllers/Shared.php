@@ -1,11 +1,11 @@
 <?php
 
-namespace {appcontext}\Controllers;
+namespace Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers;
 
 use Pterodactyl\Models\Server;
 use Pterodactyl\Models\User;
-use {appcontext}\Models\AiRequestLog;
-use {appcontext}\Models\ThemeSetting;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models\AiRequestLog;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models\ThemeSetting;
 
 /**
  * Shared guards + helpers for the AI controllers. Kept in the controller

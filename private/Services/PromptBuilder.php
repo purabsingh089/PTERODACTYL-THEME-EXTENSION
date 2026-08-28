@@ -1,6 +1,6 @@
 <?php
 
-namespace {appcontext}\Services;
+namespace Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services;
 
 /**
  * Builds the structured prompts sent to monkeycode-ai.net.

@@ -1,12 +1,12 @@
 <?php
 
-namespace {appcontext}\Controllers;
+namespace Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Pterodactyl\Http\Controllers\Controller;
-use {appcontext}\Services\ThemePresetManager;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services\ThemePresetManager;
 
 /**
  * Export / import theme presets as JSON files.

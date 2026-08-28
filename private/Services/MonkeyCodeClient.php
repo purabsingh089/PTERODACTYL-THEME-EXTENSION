@@ -1,11 +1,11 @@
 <?php
 
-namespace {appcontext}\Services;
+namespace Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use {appcontext}\Models\AiRequestLog;
-use {appcontext}\Models\ThemeSetting;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models\AiRequestLog;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models\ThemeSetting;
 
 /**
  * Thin HTTP wrapper around the monkeycode-ai.net chat completions API.

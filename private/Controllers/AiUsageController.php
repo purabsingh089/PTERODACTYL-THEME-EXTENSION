@@ -1,12 +1,12 @@
 <?php
 
-namespace {appcontext}\Controllers;
+namespace Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Pterodactyl\Http\Controllers\Controller;
-use {appcontext}\Models\AiRequestLog;
-use {appcontext}\Models\ThemeSetting;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models\AiRequestLog;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models\ThemeSetting;
 
 /**
  * Usage/quota dashboard data for administrators: call volume, per-model

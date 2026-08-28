@@ -1,10 +1,10 @@
 <?php
 
-namespace {appcontext}\Services;
+namespace Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services;
 
 use Illuminate\Support\Facades\File;
-use {appcontext}\Models\ThemePreset;
-use {appcontext}\Models\ThemeSetting;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models\ThemePreset;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models\ThemeSetting;
 
 /**
  * Built-in + user preset management.

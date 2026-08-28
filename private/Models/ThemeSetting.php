@@ -1,6 +1,6 @@
 <?php
 
-namespace {appcontext}\Models;
+namespace Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -20,7 +20,7 @@ class ThemeSetting extends Model
 
     protected $fillable = ['key', 'value'];
 
-    public $timestamps = ['updated_at'];
+    public $timestamps = false;
 
     protected $hidden = [];
 
@@ -47,7 +47,10 @@ class ThemeSetting extends Model
     {
         static::query()->updateOrCreate(
             ['key' => $key],
-            ['value' => json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]
+            [
+                'value' => json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                'updated_at' => now(),
+            ]
         );
     }
 

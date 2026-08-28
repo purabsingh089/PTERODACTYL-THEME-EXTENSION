@@ -35,7 +35,8 @@ data:
 
 requests:
   # PHP classes (Controllers/, Services/, Models/) live under
-  #   Pterodactyl\...Extensions\primus\... via the {appcontext} placeholder.
+  #   Pterodactyl\BlueprintFramework\Extensions\{identifier}\... using the
+  #   literal namespace path (the {appcontext} placeholder is unreliable).
   app: "private"
   routers:
     web: "private/routes.php"   # /extensions/primus/...

@@ -1,6 +1,6 @@
 <?php
 
-namespace {appcontext}\Models;
+namespace Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -23,7 +23,7 @@ class AiRequestLog extends Model
 {
     protected $table = 'primus_ai_request_logs';
 
-    public $timestamps = ['created_at'];
+    public $timestamps = false;
 
     protected $fillable = [
         'user_id',

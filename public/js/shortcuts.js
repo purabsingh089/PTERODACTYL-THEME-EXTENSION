@@ -32,7 +32,7 @@
     var seq = sequence.join("");
     if (seq === "GC" && currentServerId()) {
       sequence = [];
-      location.href = "/server/" + currentServerId() + "/console";
+      location.href = "/server/" + currentServerId();
       return true;
     }
     if (seq === "GD") { sequence = []; location.href = "/"; return true; }

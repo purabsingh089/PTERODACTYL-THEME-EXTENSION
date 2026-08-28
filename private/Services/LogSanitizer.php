@@ -1,6 +1,6 @@
 <?php
 
-namespace {appcontext}\Services;
+namespace Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services;
 
 /**
  * Removes sensitive values from console output before it is handed to the

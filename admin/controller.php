@@ -9,9 +9,9 @@ use Illuminate\Http\Request;
 use Illuminate\View\Factory as ViewFactory;
 use Pterodactyl\BlueprintFramework\Libraries\ExtensionLibrary\Admin\BlueprintAdminLibrary;
 use Pterodactyl\Http\Controllers\Controller;
-use {appcontext}\Models\ThemeSetting;
-use {appcontext}\Services\MonkeyCodeClient;
-use {appcontext}\Services\ThemePresetManager;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models\ThemeSetting;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services\MonkeyCodeClient;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services\ThemePresetManager;
 
 /**
  * Custom admin controller for the Primus extension.
@@ -28,7 +28,8 @@ class primusExtensionController extends Controller
 
     public function index(Request $request): View
     {
-        return $this->view->make('admin.extensions.primus.view')->with([
+        return $this->view->make('admin.extensions.primus.index')->with([
+            'blueprint' => $this->blueprint,
             'version' => '{version}',
             'identifier' => '{identifier}',
             'active_preset' => $this->presets->active(),

@@ -16,7 +16,15 @@
   }
 
   function isConsolePage() {
-    return /\/server\/[a-zA-Z0-9]+\/console\/?/.test(location.pathname);
+    return /\/server\/[a-zA-Z0-9]+\/?$/.test(location.pathname);
+  }
+
+  function consoleHost() {
+    var col = U.q("#app div[class*='col-span-4'][class*='lg:col-span-3'], div[class*='col-span-4'][class*='lg:col-span-3']");
+    if (col) return col;
+    var term = U.q("#terminal, .xterm");
+    if (term) return term.closest("div");
+    return null;
   }
 
   function grabConsoleText() {
@@ -77,7 +85,7 @@
       "</div>"
     );
     mask.appendChild(modal);
-    document.body.appendChild(modal);
+    document.body.appendChild(mask);
     mask.addEventListener("click", function (e) { if (e.target === mask) mask.remove(); });
     modal.querySelector(".pr-fix-modal__close").addEventListener("click", function () { mask.remove(); });
 
@@ -162,25 +170,26 @@
       "<pre>" + U.esc(code) + "</pre></div>";
   }
 
-  /* mount when the console renders (xterm appears) */
+  /* mount when the console page renders (terminal may be disconnected) */
   P.register({
-    each: ".xterm",
-    observe: function (node) {
+    each: "div[class*='col-span-4'][class*='lg:col-span-3'], .xterm, #terminal",
+    observe: function () {
       if (!isConsolePage()) return;
-      var host = node.closest("div");
-      var region = node.closest('[class*="Container"], [class*="container"]') || (host && host.parentElement);
-      if (region) mountFixerButton(region);
+      var host = consoleHost();
+      if (host) mountFixerButton(host);
     },
   });
 
-  /* deep-link from quick actions: /console?primus=diagnose */
+  /* deep-link from quick actions: /server/{id}?primus=diagnose */
   P.ready.then(function () {
     if (!P.requestDiagnose || !isConsolePage()) return;
     var tries = 0;
     var timer = setInterval(function () {
       tries++;
-      if (U.q(".xterm")) {
+      var host = consoleHost();
+      if (host) {
         clearInterval(timer);
+        mountFixerButton(host);
         setTimeout(openFixer, 800);
       } else if (tries > 20) {
         clearInterval(timer);

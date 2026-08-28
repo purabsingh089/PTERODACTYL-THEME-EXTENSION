@@ -1,14 +1,14 @@
 <?php
 
-namespace {appcontext}\Controllers;
+namespace Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Pterodactyl\Http\Controllers\Controller;
-use {appcontext}\Models\ThemeSetting;
-use {appcontext}\Services\LogSanitizer;
-use {appcontext}\Services\MonkeyCodeClient;
-use {appcontext}\Services\PromptBuilder;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models\ThemeSetting;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services\LogSanitizer;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services\MonkeyCodeClient;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services\PromptBuilder;
 
 /**
  * AI Server Fixer — analyzes sanitized console output and returns a

@@ -1,6 +1,6 @@
 <?php
 
-namespace {appcontext}\Models;
+namespace Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models;
 
 use Illuminate\Database\Eloquent\Model;
 

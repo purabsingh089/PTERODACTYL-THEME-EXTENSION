@@ -9,11 +9,11 @@
 use Illuminate\Support\Facades\Route;
 use Pterodactyl\Http\Middleware\AdminAuthenticate;
 
-use {appcontext}\Controllers\AiFixerController;
-use {appcontext}\Controllers\AiOptimizerController;
-use {appcontext}\Controllers\AiUsageController;
-use {appcontext}\Controllers\ExportImportController;
-use {appcontext}\Controllers\SettingsController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\AiFixerController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\AiOptimizerController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\AiUsageController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\ExportImportController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\SettingsController;
 
 // Public runtime configuration consumed by the client bundle.
 // No secrets here — see SettingsController::public().
@@ -41,7 +41,7 @@ Route::middleware(['auth', AdminAuthenticate::class])->group(function () {
 // server the acting user owns or is subuser on.
 Route::middleware(['auth'])->post('/proxy/power', function (\Illuminate\Http\Request $request) {
     $user = $request->user();
-    $server = \{appcontext}\Controllers\Shared::resolveAccessibleServer(
+    $server = Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\Shared::resolveAccessibleServer(
         (string) $request->json('server', ''),
         $user
     );

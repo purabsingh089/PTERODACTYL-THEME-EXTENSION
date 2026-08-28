@@ -82,7 +82,9 @@
   function mountCard() {
     if (U.q(".pr-sidecard") || !isOverview()) return;
     var aside =
-      U.q("#app aside, #app aside[class], aside, div[class*='right'], div[class*='stats']");
+      U.q("div[class*='col-span-4'][class*='lg:col-span-1'], div[class*='order-last']") ||
+      U.q("div[class*='right'], div[class*='stats']") ||
+      U.q("#app aside, aside");
     if (!aside) return;
 
     card = U.el(
@@ -101,6 +103,8 @@
     );
     card.querySelector(".pr-opt-btn").addEventListener("click", runOptimizer);
     aside.appendChild(card);
+    card.style.gridColumn = "1 / -1";
+    card.style.width = "100%";
 
     /* sparklines */
     drawSpark(card.querySelector(".pr-m-cpu .pr-metric__bar"), "cpu");
@@ -234,11 +238,17 @@
   }
 
   /* ── wiring ──────────────────────────────────────────────────────── */
+  function mountRetry(tries) {
+    tries = tries || 0;
+    try { mountCard(); } catch (e) { /* ignore */ }
+    if (U.q(".pr-sidecard") || !isOverview()) return;
+    if (tries < 20) setTimeout(function () { mountRetry(tries + 1); }, 600);
+  }
   P.ready.then(function () {
     installSocketHook();
-    setTimeout(mountCard, 900);
+    mountRetry(0);
   });
   P.on("page:view", function () {
-    setTimeout(mountCard, 900);
+    setTimeout(function () { mountRetry(0); }, 300);
   });
 })();
