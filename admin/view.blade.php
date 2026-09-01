@@ -181,9 +181,9 @@
       <div class="prx-col">
         <h3 class="prx-h">Provider</h3>
         <div class="prx-field">
-          <label>monkeycode-ai.net API key (stored server-side only)</label>
+          <label>Provider API key (stored server-side only)</label>
           <input type="password" id="prx-ai-key" autocomplete="off"
-                 placeholder="{{ $settings['ai']['api_key_configured'] ? '•••••••• (configured)' : 'sk-…' }}">
+                 placeholder="{{ $settings['ai']['api_key_configured'] ? '•••••••• (configured)' : 'sk-...' }}">
         </div>
         <div class="prx-field">
           <label>API base URL</label>
@@ -195,27 +195,29 @@
         </div>
       </div>
       <div class="prx-col">
-        <h3 class="prx-h">Models per feature</h3>
+        <h3 class="prx-h">Models</h3>
         <div class="prx-field">
-          <label>AI Fixer (console diagnostics)</label>
-          <select id="prx-model-fix">
-            @foreach($models as $modelId => $modelLabel)
-              <option value="{{ $modelId }}" {{ ($settings['ai']['models']['fix'] ?? '') === $modelId ? 'selected' : '' }}>{{ $modelLabel }}</option>
-            @endforeach
-          </select>
+          <button class="prx-btn prx-btn-ghost" id="prx-ai-detect" type="button">Detect available models</button>
+          <small class="prx-hint" id="prx-ai-detect-status">Ask the provider which models it offers, using the base URL and key above.</small>
         </div>
         <div class="prx-field">
-          <label>AI Optimizer (resource advice)</label>
-          <select id="prx-model-optimize">
-            @foreach($models as $modelId => $modelLabel)
-              <option value="{{ $modelId }}" {{ ($settings['ai']['models']['optimize'] ?? '') === $modelId ? 'selected' : '' }}>{{ $modelLabel }}</option>
-            @endforeach
-          </select>
+          <label>AI Fixer model (console diagnostics)</label>
+          <input type="text" id="prx-model-fix" list="prx-model-list"
+                 placeholder="Pick a detected model or type any model id" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="prx-field">
+          <label>AI Optimizer model (resource advice)</label>
+          <input type="text" id="prx-model-optimize" list="prx-model-list"
+                 placeholder="Pick a detected model or type any model id" autocomplete="off" spellcheck="false">
         </div>
         <div class="prx-field">
           <label class="prx-check"><input type="checkbox" id="prx-ai-fixer-enabled" {{ $settings['ai']['fixer_enabled'] ? 'checked' : '' }}> Enable AI Fixer</label>
           <label class="prx-check"><input type="checkbox" id="prx-ai-optimizer-enabled" {{ $settings['ai']['optimizer_enabled'] ? 'checked' : '' }}> Enable AI Optimizer</label>
         </div>
+        <datalist id="prx-model-list">
+          @if(!empty($settings['ai']['models']['fix']))<option value="{{ $settings['ai']['models']['fix'] }}"></option>@endif
+          @if(!empty($settings['ai']['models']['optimize']))<option value="{{ $settings['ai']['models']['optimize'] }}"></option>@endif
+        </datalist>
       </div>
     </div>
   </section>
@@ -263,6 +265,7 @@
   var quickactions = JSON.parse(JSON.stringify(settings.quickactions || { enabled: true }));
   var ai = {
     api_key: "",
+    api_key_configured: settings.ai ? !!settings.ai.api_key_configured : false,
     base_url: settings.ai && settings.ai.base_url,
     rate_limit_per_hour: settings.ai && settings.ai.rate_limit_per_hour,
     fixer_enabled: settings.ai ? settings.ai.fixer_enabled : true,
@@ -400,22 +403,83 @@
   });
 
   // ── ai wiring ──
-  function wireSelect(id, value, onSet) {
+  function wireModel(id, value, onSet) {
     var el = document.getElementById(id);
+    if (!el) return;
     if (value) el.value = value;
-    el.addEventListener("change", function () { onSet(el.value); markDirty(); });
+    el.addEventListener("change", function () { onSet(el.value.trim()); markDirty(); });
   }
-  wireSelect("prx-model-fix", ai.models.fix, function (v) { ai.models.fix = v; });
-  wireSelect("prx-model-optimize", ai.models.optimize, function (v) { ai.models.optimize = v; });
+  wireModel("prx-model-fix", ai.models.fix, function (v) { ai.models.fix = v; });
+  wireModel("prx-model-optimize", ai.models.optimize, function (v) { ai.models.optimize = v; });
 
-  document.getElementById("prx-ai-base-url").addEventListener("change", function (e) { ai.base_url = e.target.value.trim(); markDirty(); });
+  function keyAvailable() {
+    return (ai.api_key && ai.api_key !== "••••••••") || ai.api_key_configured;
+  }
+
+  function populateModelList(models) {
+    var list = document.getElementById("prx-model-list");
+    if (!list) return;
+    var merged = [];
+    ([ai.models.fix, ai.models.optimize].concat(models || [])).forEach(function (v) {
+      if (!v) return;
+      v = String(v).trim();
+      if (v && merged.indexOf(v) === -1) merged.push(v);
+    });
+    list.innerHTML = merged.map(function (v) {
+      return '<option value="' + v.replace(/"/g, "&quot;") + '"></option>';
+    }).join("");
+  }
+
+  function detectModels(silent) {
+    var btn = document.getElementById("prx-ai-detect");
+    var status = document.getElementById("prx-ai-detect-status");
+    var baseUrlEl = document.getElementById("prx-ai-base-url");
+    if (!keyAvailable()) {
+      if (status) status.textContent = "Add an API key above first, then detect the models the provider offers.";
+      if (!silent) toast("Add an API key first to list available models", "warn");
+      return;
+    }
+    if (btn) btn.disabled = true;
+    if (status) status.textContent = "Contacting " + ((baseUrlEl.value || "").trim() || "the provider") + " …";
+    postAdmin("/admin/ai/models", { base_url: (baseUrlEl.value || "").trim(), api_key: ai.api_key || "" })
+      .then(function (res) {
+        if (btn) btn.disabled = false;
+        if (res.error) {
+          if (status) status.textContent = res.error;
+          if (!silent) toast(res.error, "error");
+          return;
+        }
+        var found = (res.models || []).length;
+        populateModelList(res.models);
+        if (res.warning) {
+          if (status) status.textContent = res.warning;
+          if (!silent) toast("Model list unavailable — enter a model id manually", "warn");
+          return;
+        }
+        if (status) status.textContent = "Found " + found + " model(s) — pick one below or type any id.";
+        if (!silent) toast("Found " + found + " model(s)", found ? "success" : "warn");
+      })
+      .catch(function () {
+        if (btn) btn.disabled = false;
+        if (status) status.textContent = "Could not reach the provider. Check the base URL and API key.";
+        if (!silent) toast("Could not reach the AI provider", "error");
+      });
+  }
+
+  document.getElementById("prx-ai-detect").addEventListener("click", function () { detectModels(false); });
+
+  document.getElementById("prx-ai-base-url").addEventListener("change", function (e) {
+    ai.base_url = e.target.value.trim();
+    markDirty();
+    detectModels(false);
+  });
   document.getElementById("prx-ai-rate-limit").addEventListener("change", function (e) {
     var n = parseInt(e.target.value, 10);
     if (n && n > 0) { ai.rate_limit_per_hour = n; markDirty(); }
   });
   document.getElementById("prx-ai-key").addEventListener("change", function (e) {
     ai.api_key = e.target.value.trim();
-    if (ai.api_key) markDirty();
+    if (ai.api_key && ai.api_key !== "••••••••") { markDirty(); detectModels(false); }
     e.target.value = ai.api_key ? "••••••••" : "";
   });
   function wireSwitch(id, onSet) {
@@ -424,6 +488,12 @@
   }
   wireSwitch("prx-ai-fixer-enabled", function (v) { ai.fixer_enabled = v; });
   wireSwitch("prx-ai-optimizer-enabled", function (v) { ai.optimizer_enabled = v; });
+
+  if (ai.api_key_configured) {
+    detectModels(true);
+  } else {
+    populateModelList([]);
+  }
 
   // ── presets wiring ──
   Array.prototype.forEach.call(document.querySelectorAll("[data-prx-preset]"), function (card) {
@@ -519,8 +589,10 @@
 
   // ── save ──
   function csrfToken() {
-    var meta = document.querySelector('meta[name="csrf-token"]');
-    return meta ? meta.getAttribute("content") : "";
+    var meta = document.querySelector('meta[name="csrf-token"]') || document.querySelector('meta[name="_token"]');
+    if (meta) return meta.getAttribute("content");
+    var input = document.querySelector('input[name="_token"]');
+    return input ? input.value : "";
   }
   function postAdmin(path, body) {
     return fetch("/extensions/primus" + path, {

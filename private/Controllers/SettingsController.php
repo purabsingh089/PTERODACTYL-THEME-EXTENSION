@@ -7,11 +7,14 @@ use Illuminate\Http\Request;
 use Pterodactyl\Http\Controllers\Controller;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models\ThemeSetting;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services\ThemePresetManager;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services\MonkeyCodeClient;
 
 class SettingsController extends Controller
 {
-    public function __construct(private ThemePresetManager $presets)
-    {
+    public function __construct(
+        private ThemePresetManager $presets,
+        private MonkeyCodeClient $client,
+    ) {
     }
 
     /**
@@ -41,10 +44,42 @@ class SettingsController extends Controller
                 'fixer_enabled' => (bool) ThemeSetting::get('ai.fixer_enabled', true),
                 'optimizer_enabled' => (bool) ThemeSetting::get('ai.optimizer_enabled', true),
                 'models' => [
-                    'fix' => ThemeSetting::get('ai.models.fix', 'deepseek-v4-flash'),
-                    'optimize' => ThemeSetting::get('ai.models.optimize', 'qwen3.5-plus'),
+                    'fix' => (string) ThemeSetting::get('ai.models.fix', ''),
+                    'optimize' => (string) ThemeSetting::get('ai.models.optimize', ''),
                 ],
             ],
+        ], 200, ['Cache-Control' => 'no-store']);
+    }
+
+    /**
+     * Ask the AI provider for its model catalog (OpenAI-compatible GET /models).
+     * Accepts unsaved base_url / api_key so an admin can check a provider
+     * before pressing Save. The key is only used for this single request and
+     * is never stored or returned.
+     */
+    public function models(Request $request): JsonResponse
+    {
+        $data = is_array($request->json()->all()) ? $request->json()->all() : [];
+
+        $base = trim((string) ($data['base_url'] ?? ''));
+        if ($base === '' || !preg_match('#^https?://#', $base)) {
+            $base = MonkeyCodeClient::DEFAULT_BASE_URL;
+        }
+
+        $key = trim((string) ($data['api_key'] ?? ''));
+        if ($key === '' || $key === '••••••••') {
+            $key = null;
+        }
+
+        try {
+            $catalog = $this->client->availableModels($base, $key);
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => $e->getMessage(), 'models' => []], 200);
+        }
+
+        return response()->json([
+            'models' => $catalog['models'],
+            'warning' => $catalog['warning'] !== '' ? $catalog['warning'] : null,
         ], 200, ['Cache-Control' => 'no-store']);
     }
 
@@ -125,8 +160,11 @@ class SettingsController extends Controller
             }
             if (isset($ai['models']) && is_array($ai['models'])) {
                 foreach (['fix', 'optimize', 'notes'] as $feature) {
-                    if (isset($ai['models'][$feature]) && is_string($ai['models'][$feature])) {
-                        ThemeSetting::set('ai.models.' . $feature, trim($ai['models'][$feature]));
+                    if (array_key_exists($feature, $ai['models'])) {
+                        // Null arrives when the field was emptied: Laravel's
+                        // ConvertEmptyStringsToNull turns '' into null before we see it.
+                        $raw = $ai['models'][$feature];
+                        ThemeSetting::set('ai.models.' . $feature, is_string($raw) ? trim($raw) : '');
                     }
                 }
             }

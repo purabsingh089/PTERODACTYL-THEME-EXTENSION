@@ -1,5 +1,36 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Admin panel typography: Bootstrap's admin root sets `html { font-size: 10px }`,
+  which shrank the rem-based `--pr-text-*` tokens to ~62% of their intended
+  size. The admin wrapper now pins the text tokens to px
+  (12/13/14/16/20/24) so the customizer page renders at normal readability.
+- Admin customizer save flow: `csrfToken()` read `meta[name="csrf-token"]`,
+  which the Pterodactyl admin layout does not emit (it uses
+  `meta[name="_token"]`). POSTs to the extension endpoints failed with a 419.
+  The helper now falls back to the `_token` meta / hidden input.
+
+### Changed
+- AI model selection is now fully provider-driven. The fields start empty —
+  no preset models are preloaded. Setting the base URL and API key (or
+  opening the page with a configured key) automatically asks the provider
+  via `GET /models` (`POST /extensions/{identifier}/admin/ai/models`) and
+  offers its full catalog as suggestions; a "Detect available models"
+  button re-runs the lookup on demand. Any model id can also be typed
+  manually for providers without a `/models` endpoint.
+- `MonkeyCodeClient::modelFor()` accepts any configured model id. When no
+  model is stored it uses the first id reported by the provider's catalog;
+  the built-in ids are only a last resort when the catalog is unreachable.
+- `SettingsController::save()` now persists emptyed model fields (nulls from
+  ConvertEmptyStringsToNull) as cleared values instead of silently keeping
+  the previous model.
+- Model detection no longer reports a blocked endpoint as a key rejection:
+  HTTP 403/404 on `/models` (common with CDN/WAF bot checks) now shows a
+  warning and keeps manual model entry available; only a 401 is reported as
+  an API key problem.
+
 ## v1.0.0 — 2026-08-20
 
 ### Added

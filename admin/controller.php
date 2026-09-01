@@ -34,7 +34,6 @@ class primusExtensionController extends Controller
             'identifier' => '{identifier}',
             'active_preset' => $this->presets->active(),
             'presets' => $this->presets->all(),
-            'models' => MonkeyCodeClient::MODELS,
             'settings' => [
                 'appearance' => (array) ThemeSetting::get('appearance', []),
                 'overrides' => (array) ThemeSetting::get('overrides', []),
@@ -44,9 +43,9 @@ class primusExtensionController extends Controller
                     'api_key_configured' => ThemeSetting::get('ai.api_key', '') !== '',
                     'base_url' => ThemeSetting::get('ai.base_url', MonkeyCodeClient::DEFAULT_BASE_URL),
                     'models' => [
-                        'fix' => ThemeSetting::get('ai.models.fix', 'deepseek-v4-flash'),
-                        'optimize' => ThemeSetting::get('ai.models.optimize', 'qwen3.5-plus'),
-                        'notes' => ThemeSetting::get('ai.models.notes', 'deepseek-v4-flash'),
+                        'fix' => (string) ThemeSetting::get('ai.models.fix', ''),
+                        'optimize' => (string) ThemeSetting::get('ai.models.optimize', ''),
+                        'notes' => (string) ThemeSetting::get('ai.models.notes', ''),
                     ],
                     'rate_limit_per_hour' => (int) ThemeSetting::get('ai.rate_limit_per_hour', 30),
                     'fixer_enabled' => (bool) ThemeSetting::get('ai.fixer_enabled', true),

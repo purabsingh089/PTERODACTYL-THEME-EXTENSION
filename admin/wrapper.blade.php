@@ -29,6 +29,12 @@
 <style id="primus-admin-override">
 :root {
     --pr-admin-mode: admin;
+    --pr-text-xs: 12px;
+    --pr-text-sm: 13px;
+    --pr-text-base: 14px;
+    --pr-text-md: 16px;
+    --pr-text-lg: 20px;
+    --pr-text-xl: 24px;
 @foreach($primusOverrides as $primusProperty => $primusValue)
     {!! htmlspecialchars($primusProperty, ENT_QUOTES) !!}: {!! htmlspecialchars($primusValue, ENT_QUOTES) !!};
 @endforeach

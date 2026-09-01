@@ -34,6 +34,7 @@ Route::middleware(['auth', AdminAuthenticate::class])->group(function () {
     Route::get('/admin/presets/export', [ExportImportController::class, 'export']);
     Route::post('/admin/presets/import', [ExportImportController::class, 'import']);
     Route::get('/admin/usage', [AiUsageController::class, 'summary']);
+    Route::post('/admin/ai/models', [SettingsController::class, 'models']);
 });
 
 // Tiny power-signal proxy used by the hover quick-actions on the server list

@@ -19,7 +19,7 @@ class MonkeyCodeClient
 {
     public const DEFAULT_BASE_URL = 'https://monkeycode-ai.net/v1';
 
-    /** Suggested models shipped in the admin dropdowns (allow-lists). */
+    /** Reference model ids for the default provider (not enforced — any model id works). */
     public const MODELS = [
         'deepseek-v4-flash' => 'DeepSeek V4 Flash — fast diagnostics',
         'qwen3.5-plus' => 'Qwen 3.5 Plus — deeper analysis',
@@ -92,7 +92,13 @@ class MonkeyCodeClient
         }
     }
 
-    /** @return string a model id from MODELS (validated against the allow-lists) */
+    /**
+     * Return the model id configured for the feature. Any OpenAI-compatible
+     * model id is accepted — including custom ones typed in the admin page.
+     * When no model is stored, the first id reported by the provider's own
+     * catalog is used; the built-in ids below are only a last resort when
+     * the catalog cannot be reached.
+     */
     public function modelFor(string $feature): string
     {
         $defaults = [
@@ -101,16 +107,93 @@ class MonkeyCodeClient
             'notes' => 'deepseek-v4-flash',
         ];
 
-        $configured = (string) ThemeSetting::get('ai.models.' . $feature, $defaults[$feature] ?? 'deepseek-v4-flash');
+        $configured = trim((string) ThemeSetting::get('ai.models.' . $feature, ''));
 
-        return array_key_exists($configured, self::MODELS) ? $configured : ($defaults[$feature] ?? 'deepseek-v4-flash');
+        if ($configured !== '') {
+            return $configured;
+        }
+
+        try {
+            $catalog = $this->availableModels()['models'];
+            if ($catalog !== []) {
+                return $catalog[0];
+            }
+        } catch (\Throwable $e) {
+            // no key, unreachable provider, or no /models endpoint — fall through
+        }
+
+        return $defaults[$feature] ?? 'deepseek-v4-flash';
+    }
+
+    /**
+     * Ask the provider (OpenAI-compatible GET /models) which models it offers.
+     * Used by the admin "detect available models" action so presets can be
+     * replaced with the real catalog of the configured provider.
+     *
+     * Returns ['models' => string[], 'warning' => string]. A 401 is a hard
+     * key error; a 403/404 (e.g. a CDN/WAF bot check on the endpoint) is
+     * reported as a soft warning because the key can still be valid for chat.
+     *
+     * @param string|null $baseUrl explicit base URL (unsaved admin input); stored value otherwise
+     * @param string|null $apiKey  explicit key (unsaved admin input); stored value otherwise
+     *
+     * @throws \RuntimeException on auth/network failures
+     */
+    public function availableModels(?string $baseUrl = null, ?string $apiKey = null): array
+    {
+        $base = self::normalizeBaseUrl($baseUrl !== null && $baseUrl !== '' ? $baseUrl : ThemeSetting::get('ai.base_url', self::DEFAULT_BASE_URL));
+        $key = $apiKey !== null && trim($apiKey) !== '' ? trim($apiKey) : $this->apiKey();
+
+        if ($key === '') {
+            throw new \RuntimeException('No API key available to query the model catalog. Configure one first.');
+        }
+
+        $response = Http::withToken($key)
+            ->timeout(15)
+            ->connectTimeout(10)
+            ->acceptJson()
+            ->get($base . '/models');
+
+        if ($response->status() === 401) {
+            throw new \RuntimeException('The provider rejected the API key (HTTP 401). Check the key in the Provider section.');
+        }
+        if ($response->status() === 403 || $response->status() === 404) {
+            return [
+                'models' => [],
+                'warning' => 'This provider did not return its model list (HTTP ' . $response->status()
+                    . '). The API key may still work for chat — type a model id manually below.',
+            ];
+        }
+        if (!$response->successful()) {
+            throw new \RuntimeException('The provider returned HTTP ' . $response->status() . ' while listing models.');
+        }
+
+        $payload = is_array($response->json()) ? $response->json() : [];
+        $entries = $payload['data'] ?? ($payload['models'] ?? (is_array($payload) && array_is_list($payload) ? $payload : []));
+
+        $ids = [];
+        if (is_array($entries)) {
+            foreach ($entries as $entry) {
+                $id = is_array($entry) ? ($entry['id'] ?? null) : (is_string($entry) ? $entry : null);
+                if (is_string($id) && trim($id) !== '') {
+                    $ids[] = trim($id);
+                }
+            }
+        }
+
+        return ['models' => array_values(array_unique($ids)), 'warning' => ''];
+    }
+
+    public static function normalizeBaseUrl($url): string
+    {
+        $url = rtrim((string) $url, '/');
+
+        return preg_match('#^https?://#', $url) ? $url : self::DEFAULT_BASE_URL;
     }
 
     public function baseUrl(): string
     {
-        $url = rtrim((string) ThemeSetting::get('ai.base_url', self::DEFAULT_BASE_URL), '/');
-
-        return preg_match('#^https?://#', $url) ? $url : self::DEFAULT_BASE_URL;
+        return self::normalizeBaseUrl(ThemeSetting::get('ai.base_url', self::DEFAULT_BASE_URL));
     }
 
     public function apiKey(): string
