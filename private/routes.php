@@ -13,11 +13,19 @@ use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\AiFixerCo
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\AiOptimizerController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\AiUsageController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\ExportImportController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\ServerCardsController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\MotdController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\SettingsController;
 
 // Public runtime configuration consumed by the client bundle.
 // No secrets here — see SettingsController::public().
 Route::get('/settings.json', [SettingsController::class, 'public']);
+
+// Server card banners (dashboard grid + settings page image picker).
+Route::middleware(['auth'])->group(function () {
+    Route::post('/server-cards/images', [ServerCardsController::class, 'images']);
+    Route::post('/server-cards/image', [ServerCardsController::class, 'setImage']);
+});
 
 // AI features — require an authenticated panel session.
 Route::middleware(['auth'])->group(function () {
@@ -59,9 +67,11 @@ Route::middleware(['auth'])->post('/proxy/power', function (\Illuminate\Http\Req
     // Subusers need the control-power permission; owners/admins always pass.
     if (!$user->root_admin && $server->owner_id !== $user->id) {
         $subuser = $server->subusers()->where('user_id', $user->id)->first();
-        if ($subuser === null || !in_array('control-start', $subuser->permissions, true)
-            && !in_array('control-stop', $subuser->permissions, true)
-            && !in_array('control-restart', $subuser->permissions, true)) {
+        $perms = $subuser ? (array) $subuser->permissions : [];
+        $canPower = in_array('control.start', $perms, true)
+            || in_array('control.stop', $perms, true)
+            || in_array('control.restart', $perms, true);
+        if ($subuser === null || !$canPower) {
             return response()->json(['error' => 'You do not have power control access to this server.'], 403);
         }
     }
@@ -77,4 +87,11 @@ Route::middleware(['auth'])->post('/proxy/power', function (\Illuminate\Http\Req
     }
 
     return response()->json(['ok' => true, 'signal' => $signal]);
+});
+
+// MOTD Creator — read/write the motd= line of server.properties.
+// GET gates on egg + file sniff; POST additionally requires file.update.
+Route::middleware(['auth'])->group(function () {
+    Route::get('/motd', [MotdController::class, 'index']);
+    Route::post('/motd', [MotdController::class, 'save']);
 });
