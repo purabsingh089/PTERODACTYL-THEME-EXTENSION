@@ -1,0 +1,199 @@
+/*
+ * Primus · addons.css
+ * Addon hub overlay + plugin manager panel. Token-driven, matching
+ * motd.css conventions (mask z-index 95, pr-scale-in card).
+ */
+
+.pr-addons-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  font-size: var(--pr-text-sm);
+  font-weight: var(--pr-font-weight-medium);
+  color: var(--pr-text-secondary);
+  cursor: pointer;
+  transition: color var(--pr-dur-1) var(--pr-ease);
+}
+.pr-addons-tab:hover { color: var(--pr-accent); }
+.pr-addons-tab svg { width: 15px; height: 15px; opacity: 0.7; }
+
+.pr-addons-mask {
+  position: fixed; inset: 0; z-index: 95;
+  background: rgba(5, 6, 14, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 8vh var(--pr-space-4) var(--pr-space-4);
+  overflow-y: auto;
+}
+
+.pr-addons-card {
+  width: 100%; max-width: 760px;
+  background: var(--pr-surface-raised);
+  border: 1px solid var(--pr-border-strong);
+  border-radius: var(--pr-radius-lg);
+  box-shadow: var(--pr-shadow-4);
+  display: flex; flex-direction: column;
+}
+
+.pr-addons-head {
+  display: flex; align-items: center; gap: var(--pr-space-3);
+  padding: var(--pr-space-4) var(--pr-space-5);
+  border-bottom: 1px solid var(--pr-border);
+}
+.pr-addons-title {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: var(--pr-text-md); font-weight: var(--pr-font-weight-bold);
+  color: var(--pr-text-primary); font-family: var(--pr-font-display);
+}
+.pr-addons-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--pr-accent); box-shadow: var(--pr-shadow-accent);
+}
+.pr-addons-back {
+  background: none; border: 0; color: var(--pr-accent);
+  font-size: var(--pr-text-sm); cursor: pointer;
+}
+.pr-addons-back:hover { text-decoration: underline; }
+.pr-addons-close {
+  margin-left: auto; background: none; border: 0;
+  font-size: 20px; line-height: 1; color: var(--pr-text-muted);
+  cursor: pointer; padding: 4px 8px; border-radius: var(--pr-radius-sm);
+}
+.pr-addons-close:hover { color: var(--pr-text-primary); background: var(--pr-surface-sunken); }
+
+.pr-addons-body { padding: var(--pr-space-5); }
+
+.pr-addons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--pr-space-3);
+}
+
+.pr-addons-app {
+  display: flex; gap: var(--pr-space-3); align-items: flex-start;
+  padding: var(--pr-space-4);
+  background: var(--pr-surface-sunken);
+  border: 1px solid var(--pr-border);
+  border-radius: var(--pr-radius-md);
+  cursor: pointer; position: relative;
+  transition: border-color var(--pr-dur-1) var(--pr-ease), transform var(--pr-dur-1) var(--pr-ease);
+}
+.pr-addons-app:hover { border-color: var(--pr-accent); transform: translateY(-1px); }
+.pr-addons-app.is-locked { cursor: default; opacity: 0.6; }
+.pr-addons-app.is-locked:hover { border-color: var(--pr-border); transform: none; }
+.pr-addons-app__icon { width: 34px; height: 34px; flex: none; color: var(--pr-accent); }
+.pr-addons-app__icon svg { width: 100%; height: 100%; }
+.pr-addons-app__title {
+  font-size: var(--pr-text-base); font-weight: var(--pr-font-weight-bold);
+  color: var(--pr-text-primary);
+}
+.pr-addons-app__desc {
+  font-size: var(--pr-text-xs); color: var(--pr-text-muted);
+  margin-top: 2px; line-height: 1.4;
+}
+.pr-addons-app__tag {
+  position: absolute; top: 8px; right: 8px;
+  font-size: 9px; font-weight: var(--pr-font-weight-bold);
+  text-transform: uppercase; letter-spacing: 0.05em;
+  padding: 2px 7px; border-radius: var(--pr-radius-pill);
+  background: var(--pr-accent-weak); color: var(--pr-accent);
+}
+
+.pr-addons-empty {
+  grid-column: 1 / -1; padding: var(--pr-space-8) var(--pr-space-4);
+  text-align: center; color: var(--pr-text-muted); font-size: var(--pr-text-sm);
+}
+.pr-addons-loading { display: flex; justify-content: center; padding: var(--pr-space-10); }
+
+.pr-addons-table { width: 100%; border-collapse: collapse; font-size: var(--pr-text-sm); }
+.pr-addons-table th {
+  text-align: left; padding: var(--pr-space-2) var(--pr-space-3);
+  color: var(--pr-text-muted); font-weight: var(--pr-font-weight-medium);
+  border-bottom: 1px solid var(--pr-border);
+  font-size: var(--pr-text-xs); text-transform: uppercase; letter-spacing: 0.03em;
+}
+.pr-addons-row td { padding: var(--pr-space-3); border-bottom: 1px solid var(--pr-border); }
+.pr-addons-row__name { font-family: var(--pr-font-mono); color: var(--pr-text-primary); word-break: break-all; }
+.pr-addons-row__size { color: var(--pr-text-muted); white-space: nowrap; }
+.pr-addons-row__acts { text-align: right; white-space: nowrap; }
+
+.pr-addons-act {
+  background: var(--pr-surface-sunken); border: 1px solid var(--pr-border-strong);
+  color: var(--pr-text-secondary); font-size: var(--pr-text-xs);
+  font-weight: var(--pr-font-weight-medium);
+  padding: 5px 12px; border-radius: var(--pr-radius-sm); cursor: pointer;
+}
+.pr-addons-act:hover { border-color: var(--pr-accent); color: var(--pr-accent); }
+.pr-addons-act--danger:hover { border-color: var(--pr-danger); color: var(--pr-danger); }
+
+.pr-addons-pill {
+  font-size: 10px; font-weight: var(--pr-font-weight-bold);
+  padding: 3px 9px; border-radius: var(--pr-radius-pill);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.pr-addons-pill[data-state="on"] { background: var(--pr-success-weak); color: var(--pr-success); }
+.pr-addons-pill[data-state="off"] { background: var(--pr-warning-weak); color: var(--pr-warning); }
+
+.pr-addons-upload {
+  margin-top: var(--pr-space-4);
+  padding: var(--pr-space-5);
+  border: 2px dashed var(--pr-border-strong);
+  border-radius: var(--pr-radius-md);
+  display: flex; align-items: center; gap: var(--pr-space-3); justify-content: center;
+  transition: border-color var(--pr-dur-1) var(--pr-ease);
+}
+.pr-addons-upload.is-drag { border-color: var(--pr-accent); background: var(--pr-accent-weak); }
+.pr-addons-upload__btn {
+  background: var(--pr-accent); border: 1px solid var(--pr-accent);
+  color: var(--pr-accent-contrast); font-size: var(--pr-text-sm);
+  font-weight: var(--pr-font-weight-bold); padding: 7px 16px;
+  border-radius: var(--pr-radius-md); cursor: pointer;
+}
+.pr-addons-upload__btn:hover { background: var(--pr-accent-strong); }
+.pr-addons-upload__hint { font-size: var(--pr-text-xs); color: var(--pr-text-muted); }
+
+.pr-addons-confirm-mask {
+  position: absolute; inset: 0;
+  background: rgba(5, 6, 14, 0.55);
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--pr-radius-lg);
+}
+.pr-addons-confirm {
+  width: 90%; max-width: 420px;
+  background: var(--pr-surface-raised);
+  border: 1px solid var(--pr-border-strong);
+  border-radius: var(--pr-radius-md); padding: var(--pr-space-5);
+}
+.pr-addons-confirm__title {
+  font-size: var(--pr-text-base); font-weight: var(--pr-font-weight-bold);
+  color: var(--pr-text-primary); margin-bottom: var(--pr-space-2);
+}
+.pr-addons-confirm p { font-size: var(--pr-text-sm); color: var(--pr-text-secondary); }
+.pr-addons-confirm p code { font-family: var(--pr-font-mono); color: var(--pr-accent); }
+.pr-addons-confirm__input {
+  width: 100%; margin-top: var(--pr-space-3);
+  background: var(--pr-surface-sunken); border: 1px solid var(--pr-border-strong);
+  border-radius: var(--pr-radius-sm); color: var(--pr-text-primary);
+  font-family: var(--pr-font-mono); font-size: var(--pr-text-sm);
+  padding: var(--pr-space-2) var(--pr-space-3); outline: none;
+}
+.pr-addons-confirm__input:focus { border-color: var(--pr-accent); }
+.pr-addons-confirm__acts { display: flex; gap: var(--pr-space-2); justify-content: flex-end; margin-top: var(--pr-space-4); }
+.pr-addons-confirm__no {
+  background: none; border: 1px solid var(--pr-border-strong); color: var(--pr-text-secondary);
+  font-size: var(--pr-text-sm); padding: 7px 14px;
+  border-radius: var(--pr-radius-md); cursor: pointer;
+}
+.pr-addons-confirm__yes {
+  background: var(--pr-danger); border: 1px solid var(--pr-danger); color: #fff;
+  font-size: var(--pr-text-sm); font-weight: var(--pr-font-weight-bold);
+  padding: 7px 14px; border-radius: var(--pr-radius-md); cursor: pointer;
+}
+.pr-addons-confirm__yes:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media (max-width: 640px) {
+  .pr-addons-card { max-width: 92vw; }
+  .pr-addons-mask { padding: 4vh var(--pr-space-3) var(--pr-space-3); }
+  .pr-addons-table th:nth-child(3), .pr-addons-row td:nth-child(3) { display: none; }
+}

@@ -16,6 +16,7 @@
 <link rel="stylesheet" href="{webroot/public}/css/widgets.css?v=1788700901{timestamp}" id="primus-widgets">
 <link rel="stylesheet" href="{webroot/public}/css/palette.css?v=1788700901{timestamp}" id="primus-palette">
 <link rel="stylesheet" href="{webroot/public}/css/motd.css?v=1788700901{timestamp}" id="primus-motd">
+<link rel="stylesheet" href="{webroot/public}/css/addons.css?v=1788700901{timestamp}" id="primus-addons">
 
 <script>
   window.__primus = {
@@ -41,3 +42,4 @@
 <script src="{webroot/public}/js/command-palette.js?v=1788700901{timestamp}" defer></script>
 <script src="{webroot/public}/js/shortcuts.js?v=1788700901{timestamp}" defer></script>
 <script src="{webroot/public}/js/motd.js?v=1788700901{timestamp}" defer></script>
+<script src="{webroot/public}/js/addons.js?v=1788700901{timestamp}" defer></script>
