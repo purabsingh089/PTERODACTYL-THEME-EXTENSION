@@ -15,7 +15,7 @@ class PathGuard
 {
     public function resolve(string $input, array $allowedRoots = []): string
     {
-        if ($input === '' ) {
+        if ($input === '') {
             throw new InvalidArgumentException('Path is empty.');
         }
 
@@ -27,7 +27,9 @@ class PathGuard
             throw new InvalidArgumentException('Path contains a backslash.');
         }
 
-        $input = ltrim($input, '/');
+        if (str_starts_with($input, '/')) {
+            throw new InvalidArgumentException('Path must be relative.');
+        }
 
         if (preg_match('#^[A-Za-z]:#', $input)) {
             throw new InvalidArgumentException('Path must be relative.');

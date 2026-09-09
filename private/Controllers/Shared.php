@@ -4,6 +4,7 @@ namespace Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers;
 
 use Pterodactyl\Models\Server;
 use Pterodactyl\Models\User;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models\AddonAudit;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models\AiRequestLog;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models\ThemeSetting;
 
@@ -23,11 +24,12 @@ final class Shared
             return null;
         }
 
-        $query = Server::query()->with(['egg', 'nest', 'node']);
-
-        $server = $query
-            ->where('uuid', $serverId)
-            ->orWhere('uuid_short', $serverId)
+        $server = Server::query()
+            ->with(['egg', 'nest', 'node'])
+            ->where(function ($query) use ($serverId) {
+                $query->where('uuid', $serverId)
+                    ->orWhere('uuidShort', $serverId);
+            })
             ->first();
 
         if ($server === null) {
@@ -49,11 +51,29 @@ final class Shared
     }
 
     /**
-     * Sliding-window rate limit per user + feature, configured in the admin
-     * customizer (ai.rate_limit_per_hour, default 30).
+     * Sliding-window rate limit per user + feature. Features prefixed
+     * "addon." are addon mutations and count their own AddonAudit rows
+     * (addons.plugins.rate_limit_per_hour, default 60); AI features count
+     * AiRequestLog rows (ai.rate_limit_per_hour, default 30).
      */
     public static function rateLimited(int $userId, string $feature): bool
     {
+        if (str_starts_with($feature, 'addon.')) {
+            $limit = (int) ThemeSetting::get('addons.rate_limit_per_hour', 60);
+            if ($limit <= 0) {
+                return false;
+            }
+
+            $recent = AddonAudit::query()
+                ->where('user_id', $userId)
+                ->where('addon', substr($feature, 6))
+                ->where('action', '!=', 'list')
+                ->where('created_at', '>=', now()->subHour())
+                ->count();
+
+            return $recent >= $limit;
+        }
+
         $limit = (int) ThemeSetting::get('ai.rate_limit_per_hour', 30);
         if ($limit <= 0) {
             return false;

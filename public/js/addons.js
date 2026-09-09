@@ -253,7 +253,7 @@
       json: { server: serverId(), name: name.replace(/\.jar(\.disabled)?$/, ""), dir: dir },
     })
       .then(function (res) {
-        P.toast(res.enabled ? "Plugin enabled" : "Plugin disabled", name, "success");
+        P.toast(res.enabled ? "Plugin enabled" : "Plugin disabled", U.esc(name), "success");
         openPanel("plugins");
       })
       .catch(function (err) { P.toast("Toggle failed", U.esc(err.message || "unknown"), "error"); });
@@ -288,7 +288,7 @@
         json: { server: serverId(), name: name, dir: dir, confirm: name },
       })
         .then(function () {
-          P.toast("Plugin deleted", name, "success");
+          P.toast("Plugin deleted", U.esc(name), "success");
           openPanel("plugins");
         })
         .catch(function (err) { P.toast("Delete failed", U.esc(err.message || "unknown"), "error"); });
@@ -312,7 +312,7 @@
         json: { server: serverId(), name: file.name, dir: "plugins", content: b64 },
       })
         .then(function (res) {
-          P.toast("Plugin uploaded", res.name, "success");
+          P.toast("Plugin uploaded", U.esc(res.name), "success");
           openPanel("plugins");
         })
         .catch(function (err) { P.toast("Upload failed", U.esc(err.message || "unknown"), "error"); });
