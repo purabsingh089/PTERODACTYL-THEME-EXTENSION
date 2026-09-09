@@ -98,6 +98,7 @@ class AddonGate
                 'action' => $action,
                 'target' => $target,
                 'meta' => $meta,
+                'created_at' => now(),
             ]);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('primus addon audit write failed: ' . $e->getMessage());

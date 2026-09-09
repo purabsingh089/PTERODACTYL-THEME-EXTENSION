@@ -22,7 +22,7 @@ class AddonAudit extends Model
 
     protected $table = 'primus_addon_audit';
 
-    protected $fillable = ['user_id', 'server_id', 'addon', 'action', 'target', 'meta'];
+    protected $fillable = ['user_id', 'server_id', 'addon', 'action', 'target', 'meta', 'created_at'];
 
     protected $casts = [
         'user_id' => 'int',
