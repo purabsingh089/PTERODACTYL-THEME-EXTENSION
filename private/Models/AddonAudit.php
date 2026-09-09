@@ -18,6 +18,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class AddonAudit extends Model
 {
+    public $timestamps = false;
+
     protected $table = 'primus_addon_audit';
 
     protected $fillable = ['user_id', 'server_id', 'addon', 'action', 'target', 'meta'];
