@@ -16,6 +16,8 @@ use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\ExportImp
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\ServerCardsController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\MotdController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\SettingsController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\AddonsController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\PluginsController;
 
 // Public runtime configuration consumed by the client bundle.
 // No secrets here — see SettingsController::public().
@@ -94,4 +96,18 @@ Route::middleware(['auth'])->post('/proxy/power', function (\Illuminate\Http\Req
 Route::middleware(['auth'])->group(function () {
     Route::get('/motd', [MotdController::class, 'index']);
     Route::post('/motd', [MotdController::class, 'save']);
+});
+
+// Addon framework — hub + Plugin Manager (pilot). All gated through
+// AddonGate inside the controllers; the admin toggle is root-admin only.
+Route::middleware(['auth'])->group(function () {
+    Route::get('/addons', [AddonsController::class, 'index']);
+    Route::get('/addons/plugins', [PluginsController::class, 'index']);
+    Route::post('/addons/plugins/toggle', [PluginsController::class, 'toggle']);
+    Route::post('/addons/plugins/delete', [PluginsController::class, 'delete']);
+    Route::post('/addons/plugins/upload', [PluginsController::class, 'upload']);
+});
+
+Route::middleware(['auth', AdminAuthenticate::class])->group(function () {
+    Route::post('/addons/admin/toggle', [AddonsController::class, 'toggle']);
 });
