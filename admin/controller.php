@@ -9,7 +9,10 @@ use Illuminate\Http\Request;
 use Illuminate\View\Factory as ViewFactory;
 use Pterodactyl\BlueprintFramework\Libraries\ExtensionLibrary\Admin\BlueprintAdminLibrary;
 use Pterodactyl\Http\Controllers\Controller;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\AddonGate;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models\AddonAudit;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models\ThemeSetting;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services\AddonRegistry;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services\MonkeyCodeClient;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services\ThemePresetManager;
 
@@ -54,6 +57,36 @@ class primusExtensionController extends Controller
                 'shortcuts' => ThemeSetting::get('shortcuts', ['hint' => true]),
                 'quickactions' => ThemeSetting::get('quickactions', ['enabled' => true]),
             ],
+            'addons' => array_map(function ($m) {
+                return [
+                    'id' => $m['id'],
+                    'title' => $m['title'],
+                    'description' => $m['description'],
+                    'category' => $m['category'],
+                    'enabled' => AddonGate::enabled((string) $m['id']),
+                    'comingSoon' => (bool) $m['comingSoon'],
+                ];
+            }, AddonRegistry::all()),
+            // Left joins: framework audit rows carry server_id 0 (no server),
+            // which an inner join would silently drop. created_at is a raw
+            // string (AddonAudit has $timestamps=false, no date cast) and
+            // legacy rows may hold zero-dates — render those defensively.
+            'audit' => AddonAudit::query()
+                ->leftJoin('users', 'users.id', '=', 'primus_addon_audit.user_id')
+                ->leftJoin('servers', 'servers.id', '=', 'primus_addon_audit.server_id')
+                ->orderByDesc('primus_addon_audit.id')
+                ->limit(50)
+                ->get(['primus_addon_audit.*', 'users.email as user_email', 'servers.name as server_name'])
+                ->map(fn ($r) => [
+                    'when' => $r->created_at && ($ts = strtotime((string) $r->created_at)) && $ts > 0
+                        ? \Carbon\Carbon::createFromTimestamp($ts)->diffForHumans()
+                        : '—',
+                    'addon' => $r->addon,
+                    'action' => $r->action,
+                    'target' => $r->target,
+                    'user' => $r->user_email ?? '—',
+                    'server' => $r->server_name ?? '—',
+                ]),
         ]);
     }
 

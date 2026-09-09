@@ -278,3 +278,49 @@ body * { scrollbar-width: thin; scrollbar-color: var(--pr-scrollbar-thumb) trans
 @media print {
   .main-sidebar, .main-header { display: none !important; }
 }
+
+/* ── addon framework admin ─────────────────────────────── */
+.prx-addons-admin__grid {
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  margin-bottom: 24px;
+}
+.prx-addon-card {
+  background: var(--pr-surface-sunken, #12142a);
+  border: 1px solid var(--pr-border, #2a2f4a);
+  border-radius: 12px; padding: 14px 16px;
+}
+.prx-addon-card__head { display: flex; align-items: center; gap: 10px; }
+.prx-addon-card__title { font-weight: 650; font-size: 14px; }
+.prx-addon-card__soon {
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+  background: rgba(109, 93, 246, .16); color: #8577ff;
+  padding: 2px 7px; border-radius: 999px;
+}
+.prx-addon-card__desc { font-size: 12px; opacity: .7; margin: 8px 0 10px; }
+.prx-addon-card__cat {
+  font-size: 10px; text-transform: uppercase; letter-spacing: .05em; opacity: .5;
+}
+.prx-switch { margin-left: auto; cursor: pointer; }
+.prx-switch input { display: none; }
+.prx-switch__track {
+  display: inline-block; width: 34px; height: 19px;
+  background: rgba(160, 170, 213, .25); border-radius: 999px;
+  position: relative; transition: background .18s ease;
+}
+.prx-switch__track::after {
+  content: ""; position: absolute; top: 2.5px; left: 3px;
+  width: 14px; height: 14px; border-radius: 50%; background: #edeff7;
+  transition: left .18s ease;
+}
+.prx-switch input:checked + .prx-switch__track { background: #6d5df6; }
+.prx-switch input:checked + .prx-switch__track::after { left: 17px; }
+.prx-audit__title { font-size: 15px; margin: 26px 0 10px; }
+.prx-audit-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.prx-audit-table th {
+  text-align: left; padding: 8px 10px; opacity: .55;
+  border-bottom: 1px solid var(--pr-border, #2a2f4a);
+  text-transform: uppercase; font-size: 10px; letter-spacing: .04em;
+}
+.prx-audit-table td { padding: 9px 10px; border-bottom: 1px solid rgba(160, 170, 213, .12); }
+.prx-audit__target { font-family: "JetBrains Mono", monospace; font-size: 11px; }

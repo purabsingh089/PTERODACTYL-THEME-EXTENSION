@@ -29,6 +29,7 @@
     <button class="prx-tab" data-prx-tab="footer" type="button">Footer &amp; announcements</button>
     <button class="prx-tab" data-prx-tab="ai" type="button">AI</button>
     <button class="prx-tab" data-prx-tab="usage" type="button">AI usage</button>
+    <button class="prx-tab" data-prx-tab="addons" type="button">Addons</button>
   </div>
 
   {{-- ═══════════ PANEL: presets ═══════════ --}}
@@ -226,6 +227,52 @@
   <section class="prx-panel" data-prx-panel="usage" hidden>
     <div class="prx-usage" id="prx-usage">
       <div class="prx-usage-empty">Loading AI usage…</div>
+    </div>
+  </section>
+
+  {{-- ═══════════ PANEL: addons ═══════════ --}}
+  <section class="prx-panel" data-prx-panel="addons" hidden>
+    <div class="prx-addons-admin">
+      <div class="prx-addons-admin__grid">
+        @foreach($addons as $a)
+          <div class="prx-addon-card" data-addon="{{ $a['id'] }}">
+            <div class="prx-addon-card__head">
+              <span class="prx-addon-card__title">{{ $a['title'] }}</span>
+              @if($a['comingSoon'])
+                <span class="prx-addon-card__soon">coming soon</span>
+              @endif
+              <label class="prx-switch">
+                <input type="checkbox" class="prx-addon-toggle" data-addon="{{ $a['id'] }}"
+                       @if($a['enabled']) checked @endif>
+                <span class="prx-switch__track"></span>
+              </label>
+            </div>
+            <p class="prx-addon-card__desc">{{ $a['description'] }}</p>
+            <span class="prx-addon-card__cat">{{ $a['category'] }}</span>
+          </div>
+        @endforeach
+      </div>
+
+      <h3 class="prx-audit__title">Audit log</h3>
+      <table class="prx-audit-table">
+        <thead>
+          <tr><th>When</th><th>Addon</th><th>Action</th><th>Target</th><th>User</th><th>Server</th></tr>
+        </thead>
+        <tbody>
+          @forelse($audit as $row)
+            <tr>
+              <td>{{ $row['when'] }}</td>
+              <td>{{ $row['addon'] }}</td>
+              <td>{{ $row['action'] }}</td>
+              <td class="prx-audit__target">{{ $row['target'] }}</td>
+              <td>{{ $row['user'] }}</td>
+              <td>{{ $row['server'] }}</td>
+            </tr>
+          @empty
+            <tr><td colspan="6">No addon actions recorded yet.</td></tr>
+          @endforelse
+        </tbody>
+      </table>
     </div>
   </section>
 
@@ -507,6 +554,20 @@
         toast("Preset applied — reloading…", "success");
         setTimeout(function () { location.reload(); }, 700);
       }).catch(function () { toast("Could not apply preset", "error"); });
+    });
+  });
+
+  // ── addon enable/disable toggles — XHR to the gated admin endpoint ──
+  Array.prototype.forEach.call(document.querySelectorAll(".prx-addon-toggle"), function (cb) {
+    cb.addEventListener("change", function () {
+      var prev = !cb.checked;
+      postAdmin("/addons/admin/toggle", { addon: cb.getAttribute("data-addon"), enabled: cb.checked })
+        .then(function (res) {
+          if (res.ok) { toast("Addon " + (cb.checked ? "enabled" : "disabled"), "success"); return; }
+          cb.checked = prev;
+          toast(res.error || "Toggle failed.", "error");
+        })
+        .catch(function () { cb.checked = prev; toast("Toggle failed.", "error"); });
     });
   });
 
