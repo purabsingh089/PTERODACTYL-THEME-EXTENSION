@@ -18,6 +18,7 @@ use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\MotdContr
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\SettingsController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\AddonsController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\PluginsController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\MarketplaceController;
 
 // Public runtime configuration consumed by the client bundle.
 // No secrets here — see SettingsController::public().
@@ -106,8 +107,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/addons/plugins/toggle', [PluginsController::class, 'toggle']);
     Route::post('/addons/plugins/delete', [PluginsController::class, 'delete']);
     Route::post('/addons/plugins/upload', [PluginsController::class, 'upload']);
+    Route::get('/addons/marketplace/search', [MarketplaceController::class, 'search']);
+    Route::get('/addons/marketplace/versions', [MarketplaceController::class, 'versions']);
+    Route::post('/addons/marketplace/install', [MarketplaceController::class, 'install']);
 });
 
 Route::middleware(['auth', AdminAuthenticate::class])->group(function () {
     Route::post('/addons/admin/toggle', [AddonsController::class, 'toggle']);
+    Route::post('/addons/admin/marketplace/keys', [MarketplaceController::class, 'saveKeys']);
 });

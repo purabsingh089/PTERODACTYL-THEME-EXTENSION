@@ -15,6 +15,7 @@ class AddonRegistry
     {
         return [
             self::manifest('plugins'),
+            self::manifest('marketplace'),
             self::manifest('worlds'),
             self::manifest('mods'),
             self::manifest('players'),
@@ -51,6 +52,15 @@ class AddonRegistry
                 'category' => 'files',
                 'perms' => 'file.read',
                 'icon' => 'plugins',
+                'comingSoon' => false,
+            ],
+            'marketplace' => [
+                'id' => 'marketplace',
+                'title' => 'Marketplace',
+                'description' => 'Search and install mods & plugins from Modrinth and CurseForge.',
+                'category' => 'files',
+                'perms' => 'file.read',
+                'icon' => 'marketplace',
                 'comingSoon' => false,
             ],
         ];
