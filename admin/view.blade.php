@@ -253,6 +253,18 @@
         @endforeach
       </div>
 
+      <div class="prx-addon-card" style="max-width:520px">
+        <h3>Marketplace API keys</h3>
+        <p class="text-xs text-neutral-400">Provider keys are stored server-side and never displayed back.</p>
+        <label class="block mt-2 text-sm">CurseForge ({{ $mktKeys['curseforge'] ? 'configured' : 'not configured' }})
+          <input type="password" name="cf_key" placeholder="{{ $mktKeys['curseforge'] ? 'configured — leave blank to keep' : 'paste x-api-key' }}" class="prx-input" autocomplete="off" />
+        </label>
+        <label class="block mt-2 text-sm">Modrinth ({{ $mktKeys['modrinth'] ? 'configured' : 'not configured' }})
+          <input type="password" name="mr_key" placeholder="{{ $mktKeys['modrinth'] ? 'configured — leave blank to keep' : 'paste token' }}" class="prx-input" autocomplete="off" />
+        </label>
+        <button id="prx-mkt-keys-save" class="prx-btn mt-3">Save keys</button>
+      </div>
+
       <h3 class="prx-audit__title">Audit log</h3>
       <table class="prx-audit-table">
         <thead>
@@ -569,6 +581,21 @@
         })
         .catch(function () { cb.checked = prev; toast("Toggle failed.", "error"); });
     });
+  });
+
+  // ── marketplace provider keys — XHR to the gated admin endpoint ──
+  document.getElementById("prx-mkt-keys-save").addEventListener("click", function () {
+    var body = {};
+    var cf = document.querySelector("input[name='cf_key']").value.trim();
+    var mr = document.querySelector("input[name='mr_key']").value.trim();
+    if (cf) body.curseforge = cf;
+    if (mr) body.modrinth = mr;
+    if (!body.curseforge && !body.modrinth) { toast("Nothing to save", "Leave-blank fields keep existing keys.", "info"); return; }
+    postAdmin("/addons/admin/marketplace/keys", body).then(function (r) {
+      toast("Marketplace keys", "Saved. CurseForge: " + (r.curseforge ? "configured" : "not configured") + ", Modrinth: " + (r.modrinth ? "configured" : "not configured"), "success");
+      document.querySelector("input[name='cf_key']").value = "";
+      document.querySelector("input[name='mr_key']").value = "";
+    }).catch(function (e) { toast("Save failed", e.message || "unknown", "error"); });
   });
 
   document.getElementById("prx-preset-reset").addEventListener("click", function () {

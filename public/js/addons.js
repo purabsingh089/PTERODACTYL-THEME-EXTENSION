@@ -29,6 +29,7 @@
     properties: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18" cy="18" r="2"/></svg>',
     motd: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16M4 12h16M4 19h10"/></svg>',
     aimotd: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.1 6.2L20 10l-5.9 1.8L12 18l-2.1-6.2L4 10l5.9-1.8L12 2z"/></svg>',
+    marketplace: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8h16l-1.2 11a2 2 0 0 1-2 1.8H7.2a2 2 0 0 1-2-1.8L4 8Z"/><path d="M8.5 8V6.5a3.5 3.5 0 0 1 7 0V8"/></svg>',
   };
 
   function serverId() {
@@ -160,7 +161,8 @@
   }
 
   function openPanel(id) {
-    if (id !== "plugins") return; /* pilot: only plugins has a panel */
+    if (id === "marketplace") { openMarketplace(); return; }
+    if (id !== "plugins") return; /* pilot: plugins + marketplace have panels */
     activePanel = "plugins";
     var back = mask.querySelector(".pr-addons-back");
     back.style.display = "";
@@ -174,6 +176,163 @@
       .catch(function (err) {
         body.innerHTML = '<div class="pr-addons-empty">' + U.esc(err.message || "Failed to load plugins.") + "</div>";
       });
+  }
+
+  /* ── marketplace panel ───────────────────────────────────────── */
+  function openMarketplace() {
+    activePanel = "marketplace";
+    mask.querySelector(".pr-addons-back").style.display = "";
+    var body = mask.querySelector(".pr-addons-body");
+    var hasCreate = !!(pluginsState && pluginsState.perms && pluginsState.perms.canCreate);
+    body.innerHTML =
+      '<div class="pr-mkt-tabs">' +
+        '<button class="pr-mkt-tab is-active" data-provider="modrinth">Modrinth</button>' +
+        '<button class="pr-mkt-tab" data-provider="curseforge">CurseForge</button>' +
+        '<span class="pr-mkt-spacer"></span>' +
+        '<button class="pr-mkt-type is-active" data-type="mod">Mods</button>' +
+        '<button class="pr-mkt-type" data-type="plugin">Plugins</button>' +
+      "</div>" +
+      '<input class="pr-mkt-input" placeholder="Search mods and plugins…" aria-label="Search marketplace" />' +
+      '<div class="pr-mkt-grid"></div>';
+    var input = body.querySelector(".pr-mkt-input");
+    var grid = body.querySelector(".pr-mkt-grid");
+    var state = { provider: "modrinth", type: "mod", seq: 0 };
+
+    /* perms gate the install buttons; fetch them when the marketplace opens
+       straight from the hub (plugins panel was never rendered this session). */
+    if (!pluginsState || !pluginsState.perms) {
+      P.api("addons/plugins?server=" + encodeURIComponent(serverId()))
+        .then(function (payload) {
+          if (!mask || activePanel !== "marketplace") return;
+          pluginsState = payload;
+          var nowCreate = !!(pluginsState && pluginsState.perms && pluginsState.perms.canCreate);
+          if (nowCreate !== hasCreate) {
+            hasCreate = nowCreate;
+            body.querySelectorAll(".pr-mkt-card").forEach(function (c) {
+              c.classList.toggle("is-readonly", !hasCreate);
+              var btn = c.querySelector(".pr-mkt-card__btn");
+              if (btn) btn.textContent = hasCreate ? "Versions" : "View";
+            });
+          }
+        })
+        .catch(function () { /* read-only stays the safe default */ });
+    }
+
+    body.querySelector(".pr-mkt-tabs").addEventListener("click", function (e) {
+      var t = e.target.closest(".pr-mkt-tab");
+      if (t) {
+        body.querySelectorAll(".pr-mkt-tab").forEach(function (b) { b.classList.remove("is-active"); });
+        t.classList.add("is-active");
+        state.provider = t.getAttribute("data-provider");
+        doSearch();
+        return;
+      }
+      var ty = e.target.closest(".pr-mkt-type");
+      if (ty) {
+        body.querySelectorAll(".pr-mkt-type").forEach(function (b) { b.classList.remove("is-active"); });
+        ty.classList.add("is-active");
+        state.type = ty.getAttribute("data-type");
+        doSearch();
+      }
+    });
+
+    var debounce = null;
+    input.addEventListener("input", function () {
+      clearTimeout(debounce);
+      debounce = setTimeout(doSearch, 350);
+    });
+
+    function doSearch() {
+      var q = input.value.trim();
+      if (!q) { grid.innerHTML = ""; return; }
+      var seq = ++state.seq;
+      grid.innerHTML = '<div class="pr-addons-loading"><span class="pr-typing-dots"><span></span><span></span><span></span></span></div>';
+      P.api("addons/marketplace/search?server=" + encodeURIComponent(serverId()) +
+        "&q=" + encodeURIComponent(q) + "&provider=" + state.provider + "&type=" + state.type)
+        .then(function (payload) {
+          if (seq !== state.seq || !mask) return;
+          renderResults(payload.results || []);
+        })
+        .catch(function (err) {
+          if (seq !== state.seq || !mask) return;
+          grid.innerHTML = '<div class="pr-addons-empty">' + U.esc(err.message || "Search failed.") + "</div>";
+        });
+    }
+
+    function renderResults(list) {
+      if (!list.length) { grid.innerHTML = '<div class="pr-addons-empty">No results.</div>'; return; }
+      grid.innerHTML = "";
+      list.forEach(function (r) {
+        var card = U.el("div", "pr-mkt-card" + (hasCreate ? "" : " is-readonly"),
+          '<img class="pr-mkt-card__icon" src="' + U.esc(r.icon) + '" alt="" onerror="this.style.display=\'none\'" />' +
+          '<div class="pr-mkt-card__text">' +
+            '<div class="pr-mkt-card__title">' + U.esc(r.name) + "</div>" +
+            '<div class="pr-mkt-card__meta">' + U.esc(r.author) + " · " + fmtDownloads(r.downloads) + "</div>" +
+            '<div class="pr-mkt-card__summary">' + U.esc(r.summary) + "</div>" +
+          "</div>" +
+          '<button class="pr-mkt-card__btn" data-project="' + U.esc(r.id) + '">' + (hasCreate ? "Versions" : "View") + "</button>");
+        card.querySelector(".pr-mkt-card__btn").addEventListener("click", function () {
+          if (!hasCreate) { P.toast("Install disabled", "You need file-create permission to install.", "warning"); return; }
+          openVersions(r);
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    function openVersions(r) {
+      var seq = ++state.seq;
+      var modal = U.el("div", "pr-mkt-picker pr-scale-in",
+        '<div class="pr-mkt-picker__head">' +
+          '<div class="pr-mkt-picker__title">' + U.esc(r.name) + "</div>" +
+          '<button class="pr-mkt-picker__close" type="button">&times;</button>' +
+        "</div>" +
+        '<div class="pr-mkt-picker__body"><div class="pr-addons-loading"><span class="pr-typing-dots"><span></span><span></span><span></span></span></div></div>');
+      body.appendChild(modal);
+      modal.querySelector(".pr-mkt-picker__close").addEventListener("click", function () { modal.remove(); });
+      P.api("addons/marketplace/versions?server=" + encodeURIComponent(serverId()) +
+        "&provider=" + state.provider + "&project=" + encodeURIComponent(r.id) + "&type=" + state.type)
+        .then(function (payload) {
+          if (seq !== state.seq || !mask) { modal.remove(); return; }
+          renderVersions(modal, payload.versions || []);
+        })
+        .catch(function (err) {
+          modal.querySelector(".pr-mkt-picker__body").innerHTML =
+            '<div class="pr-addons-empty">' + U.esc(err.message || "Failed to load versions.") + "</div>";
+        });
+
+      function renderVersions(modal, list) {
+        var rows = modal.querySelector(".pr-mkt-picker__body");
+        rows.innerHTML = "";
+        list.slice(0, 20).forEach(function (v) {
+          var row = U.el("div", "pr-mkt-version",
+            '<div class="pr-mkt-version__main">' +
+              '<div class="pr-mkt-version__name">' + U.esc(v.name) + "</div>" +
+              '<div class="pr-mkt-version__meta">' + U.esc(v.filename) + " · " + fmtBytes(v.size) + "</div>" +
+            "</div>" +
+            '<button class="pr-mkt-version__install" data-v="' + U.esc(v.id) + '">Install</button>');
+          row.querySelector(".pr-mkt-version__install").addEventListener("click", function () {
+            install(state.provider, state.type, r.id, v);
+          });
+          rows.appendChild(row);
+        });
+      }
+    }
+
+    function install(provider, type, project, v) {
+      P.api("addons/marketplace/install", {
+        method: "POST",
+        json: { server: serverId(), provider: provider, project: project, version: v.id, type: type },
+      })
+        .then(function (res) {
+          P.toast("Installed", U.esc(res.name), "success");
+        })
+        .catch(function (err) {
+          P.toast("Install failed", U.esc(err.message || "unknown"), "error");
+        });
+    }
+
+    function fmtDownloads(n) { return n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e3 ? (n / 1e3).toFixed(1) + "k" : String(n); }
+    function fmtBytes(n) { return n >= 1048576 ? (n / 1048576).toFixed(1) + " MiB" : Math.max(1, Math.round(n / 1024)) + " KiB"; }
   }
 
   function renderPlugins() {
@@ -207,6 +366,10 @@
 
     body.innerHTML =
       '<div class="pr-plugins-panel">' +
+        '<div class="pr-plugins-panel__head">' +
+          '<span class="pr-plugins-panel__hint">Plugin &amp; mod jars in plugins/ and mods/</span>' +
+          (perms.canCreate ? '<button class="pr-plugins-mkt" type="button">Install from marketplace</button>' : "") +
+        "</div>" +
         '<table class="pr-addons-table"><thead><tr><th>Plugin</th><th>Folder</th><th>Size</th><th>State</th><th></th></tr></thead>' +
         "<tbody>" + (rows || '<tr><td colspan="5" class="pr-addons-empty">No plugin jars found.</td></tr>') + "</tbody></table>" +
         upload +
@@ -226,6 +389,8 @@
         if (d) { pluginDeletePrompt(d.dataset.delete, d.dataset.dir); return; }
         var up = e.target.closest(".pr-addons-upload__btn");
         if (up) { body.querySelector(".pr-addons-file").click(); return; }
+        var mkt = e.target.closest(".pr-plugins-mkt");
+        if (mkt) { openMarketplace(); return; }
       });
     }
 

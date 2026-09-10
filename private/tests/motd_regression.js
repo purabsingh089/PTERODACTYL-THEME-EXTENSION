@@ -93,7 +93,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     else bad("d motd + addons tabs coexist", JSON.stringify(both));
   } catch (e) { bad("d motd + addons tabs coexist", e.message); }
 
-  /* e — Rust server: no motd tab, addons hub opens with 12 cards;
+  /* e — Rust server: no motd tab, addons hub opens with 13 cards;
    * plugins card clickable (admin canUse) — panel must show graceful
    * empty/error state on Rust (no plugins dir), not a crash. */
   try {
@@ -109,8 +109,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       await page.waitForSelector(".pr-addons-mask", { timeout: 5000 });
       await page.waitForSelector(".pr-addons-app", { timeout: 5000 });
       const cards = await page.$$eval(".pr-addons-app", (els) => els.length);
-      if (cards === 12) ok("e Rust hub: 12 cards");
-      else bad("e Rust hub: 12 cards", String(cards));
+      if (cards === 13) ok("e Rust hub: 13 cards");
+      else bad("e Rust hub: 13 cards", String(cards));
       const pluginsCard = await page.evaluate(() => {
         const els = Array.from(document.querySelectorAll(".pr-addons-app"));
         const c = els.find((x) => x.textContent.indexOf("Plugin Manager") !== -1);

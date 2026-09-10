@@ -67,6 +67,10 @@ class primusExtensionController extends Controller
                     'comingSoon' => (bool) $m['comingSoon'],
                 ];
             }, AddonRegistry::all()),
+            'mktKeys' => [
+                'curseforge' => (bool) ThemeSetting::get('marketplace.curseforge.key', ''),
+                'modrinth' => (bool) ThemeSetting::get('marketplace.modrinth.key', ''),
+            ],
             // Left joins: framework audit rows carry server_id 0 (no server),
             // which an inner join would silently drop. created_at is a raw
             // string (AddonAudit has $timestamps=false, no date cast) and
