@@ -31,9 +31,47 @@ class MarketplaceClient
 
     public static function search(string $q, string $provider, string $type): array
     {
-        self::assertProvider($provider);
         self::assertType($type);
 
+        /* "all" fans out to both providers (each leg cached on its own,
+         * so a missing CurseForge key never poisons Modrinth results). */
+        if ($provider === 'all') {
+            /* Interleave up to 10 from each provider so a globally-popular
+             * Modrinth hit list cannot drown CurseForge (and vice versa). */
+            $buckets = [];
+            $firstError = null;
+            foreach (['modrinth', 'curseforge'] as $p) {
+                try {
+                    $buckets[$p] = array_slice(self::searchOne($q, $p, $type), 0, 10);
+                } catch (\Throwable $e) {
+                    $buckets[$p] = [];
+                    $firstError = $firstError ?? $e;
+                }
+            }
+            $results = [];
+            $n = max(count($buckets['modrinth'] ?? []), count($buckets['curseforge'] ?? []));
+            for ($i = 0; $i < $n; $i++) {
+                if (isset($buckets['modrinth'][$i])) {
+                    $results[] = $buckets['modrinth'][$i];
+                }
+                if (isset($buckets['curseforge'][$i])) {
+                    $results[] = $buckets['curseforge'][$i];
+                }
+            }
+            if (!$results && $firstError !== null) {
+                throw $firstError;
+            }
+
+            return ['results' => $results];
+        }
+
+        self::assertProvider($provider);
+
+        return ['results' => self::searchOne($q, $provider, $type)];
+    }
+
+    private static function searchOne(string $q, string $provider, string $type): array
+    {
         return self::cached('s.' . $provider . '.' . $type . '.' . md5($q), function () use ($q, $provider, $type) {
             $results = [];
             if ($provider === 'modrinth') {
@@ -41,6 +79,7 @@ class MarketplaceClient
                 $json = self::mrGet('/search?query=' . urlencode($q) . "&facets=$facet&limit=20");
                 foreach ($json['hits'] ?? [] as $h) {
                     $results[] = [
+                        'provider' => $provider,
                         'id' => (string) ($h['project_id'] ?? ''),
                         'name' => (string) ($h['title'] ?? ''),
                         'summary' => (string) ($h['description'] ?? ''),
@@ -61,6 +100,7 @@ class MarketplaceClient
                 ]);
                 foreach ($json['data'] ?? [] as $m) {
                     $results[] = [
+                        'provider' => $provider,
                         'id' => (string) ($m['id'] ?? ''),
                         'name' => (string) ($m['name'] ?? ''),
                         'summary' => (string) ($m['summary'] ?? ''),
@@ -73,7 +113,7 @@ class MarketplaceClient
                 }
             }
 
-            return ['results' => $results];
+            return $results;
         });
     }
 
@@ -227,7 +267,9 @@ class MarketplaceClient
     {
         $key = (string) ThemeSetting::get('marketplace.curseforge.key', '');
         if ($key === '') {
-            throw new MarketplaceException('curseforge', 'CurseForge API key is not configured. Set it on the Addons admin page.');
+            /* configuration error, not a provider outage: 422 with the
+             * admin-page hint (spec §4.3), never 502 */
+            throw new \InvalidArgumentException('CurseForge API key is not configured. Set it on the Addons admin page.');
         }
         try {
             $resp = Http::withHeaders([

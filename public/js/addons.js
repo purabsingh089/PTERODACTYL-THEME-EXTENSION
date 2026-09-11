@@ -186,6 +186,7 @@
     var hasCreate = !!(pluginsState && pluginsState.perms && pluginsState.perms.canCreate);
     body.innerHTML =
       '<div class="pr-mkt-tabs">' +
+        '<button class="pr-mkt-tab" data-provider="all">All</button>' +
         '<button class="pr-mkt-tab is-active" data-provider="modrinth">Modrinth</button>' +
         '<button class="pr-mkt-tab" data-provider="curseforge">CurseForge</button>' +
         '<span class="pr-mkt-spacer"></span>' +
@@ -280,6 +281,7 @@
     }
 
     function openVersions(r) {
+      var prov = r.provider || state.provider;
       var seq = ++state.seq;
       var modal = U.el("div", "pr-mkt-picker pr-scale-in",
         '<div class="pr-mkt-picker__head">' +
@@ -290,7 +292,7 @@
       body.appendChild(modal);
       modal.querySelector(".pr-mkt-picker__close").addEventListener("click", function () { modal.remove(); });
       P.api("addons/marketplace/versions?server=" + encodeURIComponent(serverId()) +
-        "&provider=" + state.provider + "&project=" + encodeURIComponent(r.id) + "&type=" + state.type)
+        "&provider=" + encodeURIComponent(prov) + "&project=" + encodeURIComponent(r.id) + "&type=" + state.type)
         .then(function (payload) {
           if (seq !== state.seq || !mask) { modal.remove(); return; }
           renderVersions(modal, payload.versions || []);
@@ -303,15 +305,25 @@
       function renderVersions(modal, list) {
         var rows = modal.querySelector(".pr-mkt-picker__body");
         rows.innerHTML = "";
+        if (!list.length) {
+          rows.innerHTML = '<div class="pr-addons-empty">No versions found.</div>';
+          return;
+        }
         list.slice(0, 20).forEach(function (v) {
+          var gvs = (v.game_versions || []).slice(0, 4);
+          var extra = (v.game_versions || []).length > gvs.length;
           var row = U.el("div", "pr-mkt-version",
             '<div class="pr-mkt-version__main">' +
               '<div class="pr-mkt-version__name">' + U.esc(v.name) + "</div>" +
-              '<div class="pr-mkt-version__meta">' + U.esc(v.filename) + " · " + fmtBytes(v.size) + "</div>" +
+              '<div class="pr-mkt-version__meta">' + [U.esc(v.filename), fmtDate(v.date), fmtBytes(v.size)].filter(Boolean).join(" · ") + "</div>" +
+              (gvs.length
+                ? '<div class="pr-mkt-chips">' + gvs.map(function (gv) { return '<span class="pr-mkt-chip">' + U.esc(gv) + "</span>"; }).join("") +
+                    (extra ? '<span class="pr-mkt-chip pr-mkt-chip--more">+' + ((v.game_versions || []).length - gvs.length) + "</span>" : "") + "</div>"
+                : "") +
             "</div>" +
             '<button class="pr-mkt-version__install" data-v="' + U.esc(v.id) + '">Install</button>');
           row.querySelector(".pr-mkt-version__install").addEventListener("click", function () {
-            install(state.provider, state.type, r.id, v);
+            install(prov, state.type, r.id, v);
           });
           rows.appendChild(row);
         });
@@ -325,6 +337,10 @@
       })
         .then(function (res) {
           P.toast("Installed", U.esc(res.name), "success");
+          /* refresh the jar table so the plugins panel shows the new file */
+          P.api("addons/plugins?server=" + encodeURIComponent(serverId()))
+            .then(function (p) { if (mask) pluginsState = p; })
+            .catch(function () {});
         })
         .catch(function (err) {
           P.toast("Install failed", U.esc(err.message || "unknown"), "error");
@@ -333,6 +349,7 @@
 
     function fmtDownloads(n) { return n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e3 ? (n / 1e3).toFixed(1) + "k" : String(n); }
     function fmtBytes(n) { return n >= 1048576 ? (n / 1048576).toFixed(1) + " MiB" : Math.max(1, Math.round(n / 1024)) + " KiB"; }
+    function fmtDate(s) { var d = new Date(s); return isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10); }
   }
 
   function renderPlugins() {

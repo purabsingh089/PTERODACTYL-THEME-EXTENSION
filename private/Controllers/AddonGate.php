@@ -82,6 +82,7 @@ class AddonGate
         return null;
     }
 
+    /** @return int|null the created row id (null if the audit write failed) */
     public static function audit(
         User $user,
         Server $server,
@@ -89,9 +90,9 @@ class AddonGate
         string $action,
         string $target,
         array $meta = []
-    ): void {
+    ): ?int {
         try {
-            AddonAudit::query()->create([
+            return (int) AddonAudit::query()->create([
                 'user_id' => $user->id,
                 'server_id' => $server->id,
                 'addon' => $addon,
@@ -99,9 +100,25 @@ class AddonGate
                 'target' => $target,
                 'meta' => $meta,
                 'created_at' => now(),
-            ]);
+            ])->getKey();
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('primus addon audit write failed: ' . $e->getMessage());
+
+            return null;
+        }
+    }
+
+    /* finalize a provisional audit target (e.g. marketplace install rows
+     * written before the download knows the final jailed file name) */
+    public static function retarget(?int $auditId, string $target): void
+    {
+        if ($auditId === null) {
+            return;
+        }
+        try {
+            AddonAudit::query()->where('id', $auditId)->update(['target' => $target]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('primus addon audit retarget failed: ' . $e->getMessage());
         }
     }
 }

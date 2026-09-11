@@ -9,7 +9,6 @@ use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services\MarketplaceC
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services\MarketplaceException;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services\PathGuard;
 use Pterodactyl\Models\Server;
-use Pterodactyl\Models\Subuser;
 use Pterodactyl\Repositories\Wings\DaemonFileRepository;
 
 class MarketplaceController
@@ -69,6 +68,14 @@ class MarketplaceController
         }
         $dir = self::DIRS[$type];
 
+        /* audit BEFORE the download: the hourly limiter counts audit rows,
+         * so failed attempts must count too, or looping bogus version ids
+         * drains the shared provider key quota unbounded (spec §3). The
+         * row's target is finalized to the jailed path after the write. */
+        $auditId = AddonGate::audit($user, $server, 'marketplace', 'install',
+            $dir . '/' . $provider . ':' . $project . ':' . $version,
+            ['provider' => $provider, 'project' => $project, 'version' => $version]);
+
         try {
             $dl = MarketplaceClient::download($provider, $project, $version, $type);
         } catch (MarketplaceException $e) {
@@ -83,15 +90,13 @@ class MarketplaceController
             return response()->json(['error' => 'Refusing unsafe file name.'], 422);
         }
 
-        AddonGate::audit($user, $server, 'marketplace', 'install', $path, [
-            'provider' => $provider, 'project' => $project, 'version' => $version,
-        ]);
-
         try {
             app(DaemonFileRepository::class)->setServer($server)->putContent($path, $dl['bytes']);
         } catch (\Throwable $e) {
             return response()->json(['error' => 'Writing the file to the server failed.'], 502);
         }
+
+        AddonGate::retarget($auditId, $path);
 
         return response()->json(['ok' => true, 'name' => $dl['name'], 'dir' => $dir]);
     }
@@ -118,7 +123,7 @@ class MarketplaceController
 
     /* hasPerm: copy the private method verbatim from PluginsController
      * (root_admin / owner always pass; subuser needs the dotted perm). */
-    private function hasPerm($user, Server $server, string $perm): bool
+    private function hasPerm(\Pterodactyl\Models\User $user, Server $server, string $perm): bool
     {
         if ($user->root_admin || $server->owner_id === $user->id) {
             return true;

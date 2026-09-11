@@ -58,9 +58,9 @@ No new tables, no migration. Settings rows: the two key rows, `marketplace.max_d
 
 ### 4.2 MarketplaceClient (Service)
 
-- `search(string $q, string $provider, string $type): array` — Modrinth: `GET api.modrinth.com/v2/search?query=&facets=[["project_type:mod|plugin"]]`, `Authorization` + descriptive `User-Agent`. CurseForge: `GET api.curseforge.com/v1/mods/search?gameId=432&classId=<mod|plugin>&searchFilter=`, header `x-api-key`. Class ids verified once against `GET /v1/games/432` at implementation start and pinned as constants. Normalized: `{provider, results: [{id, name, summary, author, downloads, icon_url, updated}]}`.
+- `search(string $q, string $provider, string $type): array` — Modrinth: `GET api.modrinth.com/v2/search?query=&facets=[["project_type:mod|plugin"]]`, `Authorization` + descriptive `User-Agent`. CurseForge: `GET api.curseforge.com/v1/mods/search?gameId=432&classId=<mod|plugin>&searchFilter=`, header `x-api-key`. Class ids verified once against `GET /v1/games/432` at implementation start and pinned as constants. Normalized: `{results: [{provider, id, name, summary, author, downloads, icon, updated, slug}]}` (each row carries its provider so the "All" fan-out stays unambiguous).
 - `versions(string $project, string $provider, string $type): array` — newest-first `[{id, name, date, size, game_versions, filename}]`.
-- `download(string $provider, string $project, string $version, string $type): array{name, bytes}` — resolves the file via the provider API, requires https host in allowlist (`cdn.modrinth.com`, `edge.forgecdn.net`), streams to temp, enforces `max_download_mib`, sniffs `PK` zip header, rejects non-`.jar` filenames; returns filename + contents (binary-safe).
+- `download(string $provider, string $project, string $version, string $type): array{name, bytes}` — resolves the file via the provider API, requires https host in allowlist (`cdn.modrinth.com`, `edge.forgecdn.net`, `mediafilez.forgecdn.net` — the redirect target, verified live), enforces `max_download_mib`, sniffs `PK` zip header, rejects non-`.jar` filenames; returns filename + contents (binary-safe).
 - All provider HTTP failures normalize to one `MarketplaceException` → controller maps to `502 {"error": ...}` with the provider name.
 
 ### 4.3 MarketplaceController + routes

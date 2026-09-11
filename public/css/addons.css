@@ -305,6 +305,13 @@
   color: var(--pr-text-primary); word-break: break-word;
 }
 .pr-mkt-version__meta { font-size: var(--pr-text-xs); color: var(--pr-text-muted); margin-top: 2px; word-break: break-all; }
+.pr-mkt-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.pr-mkt-chip {
+  font-size: var(--pr-text-xs); color: var(--pr-text-muted);
+  border: 1px solid var(--pr-border); border-radius: var(--pr-radius-sm);
+  padding: 1px 8px; background: var(--pr-surface-sunken);
+}
+.pr-mkt-chip--more { border-style: dashed; }
 .pr-mkt-version__install {
   background: var(--pr-accent, #6d5df6); border: 1px solid var(--pr-accent, #6d5df6);
   color: var(--pr-accent-contrast); font-size: var(--pr-text-xs);

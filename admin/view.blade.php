@@ -592,6 +592,7 @@
     if (mr) body.modrinth = mr;
     if (!body.curseforge && !body.modrinth) { toast("Nothing to save", "Leave-blank fields keep existing keys.", "info"); return; }
     postAdmin("/addons/admin/marketplace/keys", body).then(function (r) {
+      if (r.error || !r.ok) return toast("Save failed", r.error || "Request failed — keys were not saved.", "error");
       toast("Marketplace keys", "Saved. CurseForge: " + (r.curseforge ? "configured" : "not configured") + ", Modrinth: " + (r.modrinth ? "configured" : "not configured"), "success");
       document.querySelector("input[name='cf_key']").value = "";
       document.querySelector("input[name='mr_key']").value = "";
