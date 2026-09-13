@@ -312,6 +312,9 @@ class WorldsController extends Controller
             if (!$this->hasLevelDat($server, $name)) {
                 continue;
             }
+            if ($this->dimOf($name) !== null && isset($candidates[$this->dimOf($name)])) {
+                continue; // DIM of a listed overworld — grouped, never its own row
+            }
 
             $dims = [];
             foreach (self::DIM_SUFFIXES as $suffix) {
@@ -406,6 +409,18 @@ class WorldsController extends Controller
         }
 
         return true;
+    }
+
+    /** If $name is a DIM folder (X_nether / X_the_end), return overworld X. */
+    private function dimOf(string $name): ?string
+    {
+        foreach (self::DIM_SUFFIXES as $suffix) {
+            if (str_ends_with($name, $suffix) && mb_strlen($name) > mb_strlen($suffix)) {
+                return substr($name, 0, -strlen($suffix));
+            }
+        }
+
+        return null;
     }
 
     private function perms(\Pterodactyl\Models\User $user, Server $server): array
