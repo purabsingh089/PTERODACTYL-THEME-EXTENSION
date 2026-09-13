@@ -19,6 +19,7 @@ use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\SettingsC
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\AddonsController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\PluginsController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\MarketplaceController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\WorldsController;
 
 // Public runtime configuration consumed by the client bundle.
 // No secrets here — see SettingsController::public().
@@ -110,6 +111,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/addons/marketplace/search', [MarketplaceController::class, 'search']);
     Route::get('/addons/marketplace/versions', [MarketplaceController::class, 'versions']);
     Route::post('/addons/marketplace/install', [MarketplaceController::class, 'install']);
+    Route::get('/addons/worlds', [WorldsController::class, 'index']);
+    Route::post('/addons/worlds/switch', [WorldsController::class, 'switch']);
+    Route::post('/addons/worlds/backup', [WorldsController::class, 'backup']);
+    Route::post('/addons/worlds/delete', [WorldsController::class, 'delete']);
 });
 
 Route::middleware(['auth', AdminAuthenticate::class])->group(function () {

@@ -63,9 +63,17 @@ class AddonRegistry
                 'icon' => 'marketplace',
                 'comingSoon' => false,
             ],
+            'worlds' => [
+                'id' => 'worlds',
+                'title' => 'World Manager',
+                'description' => 'List, switch, backup and delete Minecraft world folders.',
+                'category' => 'management',
+                'perms' => 'file.read',
+                'icon' => 'worlds',
+                'comingSoon' => false,
+            ],
         ];
         $soon = [
-            'worlds' => ['World Manager', 'management'],
             'mods' => ['Mod Manager', 'files'],
             'players' => ['Player Manager', 'management'],
             'traffic' => ['Traffic Manager', 'management'],
