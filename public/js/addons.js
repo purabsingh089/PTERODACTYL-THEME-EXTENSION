@@ -164,7 +164,7 @@
   function openPanel(id) {
     if (id === "marketplace") { openMarketplace(); return; }
     if (id === "worlds") { openWorlds(); return; }
-    if (id !== "plugins") return; /* pilot: plugins + marketplace have panels */
+    if (id !== "plugins") return; /* plugins, marketplace + worlds have panels */
     activePanel = "plugins";
     var back = mask.querySelector(".pr-addons-back");
     back.style.display = "";
