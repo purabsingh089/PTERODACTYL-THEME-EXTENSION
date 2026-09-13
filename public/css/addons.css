@@ -339,13 +339,15 @@
 }
 
 /* ── World Manager panel ─────────────────────────────────────── */
+/* (--pr-border-weak does not exist; var(--pr-border) is the established
+   weak-border token used by .pr-addons-table and .pr-mkt-version rows) */
 .pr-worlds-table { width: 100%; border-collapse: collapse; }
-.pr-worlds-table th { text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.6; padding: 10px 12px; border-bottom: 1px solid rgba(160, 170, 213, 0.12); }
-.pr-worlds-table td { padding: 10px 12px; border-bottom: 1px solid rgba(160, 170, 213, 0.12); font-size: 0.85rem; }
+.pr-worlds-table th { text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.6; padding: 10px 12px; border-bottom: 1px solid var(--pr-border); }
+.pr-worlds-table td { padding: 10px 12px; border-bottom: 1px solid var(--pr-border); font-size: 0.85rem; }
 
 .pr-worlds-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
 .pr-worlds-badge[data-active="true"] { background: var(--pr-success-weak); color: var(--pr-success); }
-.pr-worlds-badge[data-active="false"] { background: rgba(160, 170, 213, 0.12); color: inherit; opacity: 0.7; }
+.pr-worlds-badge[data-active="false"] { background: var(--pr-border); color: inherit; opacity: 0.7; }
 
 .pr-worlds-dims { display: inline-flex; gap: 6px; flex-wrap: wrap; }
-.pr-worlds-dim { font-size: 0.68rem; padding: 1px 7px; border-radius: 4px; background: rgba(160, 170, 213, 0.12); opacity: 0.75; }
+.pr-worlds-dim { font-size: 0.68rem; padding: 1px 7px; border-radius: 4px; background: var(--pr-border); opacity: 0.75; }
