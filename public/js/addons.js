@@ -13,6 +13,7 @@
 
   var hubState = null;    // GET /addons payload
   var pluginsState = null; // GET /addons/plugins payload
+  var worldsState = null; // {java, worlds, current, perms} for the open panel
   var mask = null;
   var activePanel = null; // null = hub grid, "plugins" = plugin panel
 
@@ -162,6 +163,7 @@
 
   function openPanel(id) {
     if (id === "marketplace") { openMarketplace(); return; }
+    if (id === "worlds") { openWorlds(); return; }
     if (id !== "plugins") return; /* pilot: plugins + marketplace have panels */
     activePanel = "plugins";
     var back = mask.querySelector(".pr-addons-back");
@@ -350,6 +352,147 @@
     function fmtDownloads(n) { return n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e3 ? (n / 1e3).toFixed(1) + "k" : String(n); }
     function fmtBytes(n) { return n >= 1048576 ? (n / 1048576).toFixed(1) + " MiB" : Math.max(1, Math.round(n / 1024)) + " KiB"; }
     function fmtDate(s) { var d = new Date(s); return isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10); }
+  }
+
+  /* ── worlds panel ────────────────────────────────────────────── */
+  function openWorlds() {
+    activePanel = "worlds";
+    mask.querySelector(".pr-addons-back").style.display = "";
+    var body = mask.querySelector(".pr-addons-body");
+    body.innerHTML = '<div class="pr-addons-loading"><span class="pr-typing-dots"><span></span><span></span><span></span></span></div>';
+    P.api("addons/worlds?server=" + encodeURIComponent(serverId()))
+      .then(function (payload) {
+        worldsState = payload;
+        renderWorlds();
+      })
+      .catch(function (err) {
+        body.innerHTML = '<div class="pr-addons-empty">' + U.esc(err.message || "Failed to load worlds.") + "</div>";
+      });
+  }
+
+  function renderWorlds() {
+    var body = mask.querySelector(".pr-addons-body");
+    var payload = worldsState || {};
+    var perms = payload.perms || {};
+
+    if (!payload.java) {
+      body.innerHTML =
+        '<div class="pr-plugins-panel">' +
+          '<div class="pr-addons-empty">World Manager is for Java Minecraft servers.</div>' +
+        "</div>";
+      return;
+    }
+
+    var rows = (payload.worlds || []).map(function (w) {
+      var dims = (w.dims || []).map(function (d) {
+        return '<span class="pr-worlds-dim">' + U.esc(d) + "</span>";
+      }).join("");
+      var badge = '<span class="pr-worlds-badge" data-active="' + (w.active ? "true" : "false") + '">' +
+        (w.active ? "Active" : "Inactive") + "</span>";
+      var switchBtn = perms.canUpdate && !w.active
+        ? '<button type="button" class="pr-addons-act" data-switch="' + U.esc(w.name) + '">Switch</button>'
+        : "";
+      var backupBtn = perms.canCreate
+        ? '<button type="button" class="pr-addons-act" data-backup="' + U.esc(w.name) + '">Backup</button>'
+        : "";
+      var deleteBtn = perms.canDelete && !w.active
+        ? '<button type="button" class="pr-addons-act pr-addons-act--danger" data-wdelete="' + U.esc(w.name) + '">Delete</button>'
+        : "";
+      return '<tr class="pr-worlds-row" data-name="' + U.esc(w.name) + '">' +
+        '<td class="pr-addons-row__name">' + U.esc(w.name) + "</td>" +
+        "<td>" + fmtBytes(w.size) + "</td>" +
+        '<td class="pr-worlds-dims">' + dims + "</td>" +
+        "<td>" + badge + "</td>" +
+        '<td class="pr-addons-row__acts">' + switchBtn + backupBtn + deleteBtn + "</td>" +
+      "</tr>";
+    }).join("");
+
+    body.innerHTML =
+      '<div class="pr-plugins-panel">' +
+        '<div class="pr-plugins-panel__head">' +
+          '<span class="pr-plugins-panel__hint">World folders with a level.dat, grouped with their dimension folders</span>' +
+        "</div>" +
+        '<table class="pr-worlds-table"><thead><tr><th>World</th><th>Size</th><th>Dimensions</th><th>State</th><th></th></tr></thead>' +
+        "<tbody>" + (rows || '<tr><td colspan="5" class="pr-addons-empty">No worlds found on this server.</td></tr>') + "</tbody></table>" +
+      "</div>";
+
+    bindWorldsEvents(body);
+  }
+
+  function bindWorldsEvents(body) {
+    if (!body.getAttribute("data-pr-worlds-bound")) {
+      body.setAttribute("data-pr-worlds-bound", "1");
+      body.addEventListener("click", function (e) {
+        var s = e.target.closest("[data-switch]");
+        if (s) { worldSwitch(s.dataset.switch); return; }
+        var b = e.target.closest("[data-backup]");
+        if (b) { worldBackup(b.dataset.backup); return; }
+        var d = e.target.closest("[data-wdelete]");
+        if (d) { worldDeletePrompt(d.dataset.wdelete); return; }
+      });
+    }
+  }
+
+  function worldSwitch(name) {
+    P.api("addons/worlds/switch", {
+      method: "POST",
+      json: { server: serverId(), name: name },
+    })
+      .then(function (res) {
+        P.toast("Active world set", "Restart the server to load " + U.esc(res.current || name), "success");
+        openWorlds();
+      })
+      .catch(function (err) { P.toast("Switch failed", U.esc(err.message || "unknown"), "error"); });
+  }
+
+  function worldBackup(name) {
+    P.toast("Backing up", "Archiving " + U.esc(name) + " — this can take a while…", "info");
+    P.api("addons/worlds/backup", {
+      method: "POST",
+      json: { server: serverId(), name: name },
+    })
+      .then(function (res) {
+        P.toast("World archived", U.esc(res.archive || name), "success");
+      })
+      .catch(function (err) { P.toast("Backup failed", U.esc(err.message || "unknown"), "error"); });
+  }
+
+  function worldDeletePrompt(name) {
+    var modal = U.el(
+      "div",
+      "pr-addons-confirm pr-scale-in",
+      '<div class="pr-addons-confirm__title">Delete world</div>' +
+      '<p>Type <code>' + U.esc(name) + '</code> to confirm deletion. The world folder and its dimension folders will be removed. This cannot be undone.</p>' +
+      '<input class="pr-addons-confirm__input" type="text" placeholder="' + U.esc(name) + '">' +
+      '<div class="pr-addons-confirm__acts">' +
+        '<button type="button" class="pr-addons-confirm__no">Cancel</button>' +
+        '<button type="button" class="pr-addons-confirm__yes" disabled>Delete</button>' +
+      "</div>"
+    );
+    var backdrop = U.el("div", "pr-addons-confirm-mask", "");
+    backdrop.appendChild(modal);
+    mask.appendChild(backdrop);
+
+    var input = modal.querySelector(".pr-addons-confirm__input");
+    var yes = modal.querySelector(".pr-addons-confirm__yes");
+    input.addEventListener("input", function () {
+      yes.disabled = input.value !== name;
+    });
+    modal.querySelector(".pr-addons-confirm__no").addEventListener("click", function () { backdrop.remove(); });
+    backdrop.addEventListener("click", function (e) { if (e.target === backdrop) backdrop.remove(); });
+    yes.addEventListener("click", function () {
+      backdrop.remove();
+      P.api("addons/worlds/delete", {
+        method: "POST",
+        json: { server: serverId(), name: name, confirm: name },
+      })
+        .then(function () {
+          P.toast("World deleted", U.esc(name), "success");
+          openWorlds();
+        })
+        .catch(function (err) { P.toast("Delete failed", U.esc(err.message || "unknown"), "error"); });
+    });
+    setTimeout(function () { input.focus(); }, 30);
   }
 
   function renderPlugins() {
