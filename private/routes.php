@@ -20,6 +20,17 @@ use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\AddonsCon
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\PluginsController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\MarketplaceController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\WorldsController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\ModsController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\PlayersController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\TrafficController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\ConsoleAddonController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\VersionsController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\IconsController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\TrashController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\TrashApiController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\PropertiesController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\MotdAddonController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\AiMotdController;
 
 // Public runtime configuration consumed by the client bundle.
 // No secrets here — see SettingsController::public().
@@ -115,9 +126,38 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/addons/worlds/switch', [WorldsController::class, 'switch']);
     Route::post('/addons/worlds/backup', [WorldsController::class, 'backup']);
     Route::post('/addons/worlds/delete', [WorldsController::class, 'delete']);
+    Route::get('/addons/mods', [ModsController::class, 'index']);
+    Route::post('/addons/mods/toggle', [ModsController::class, 'toggle']);
+    Route::post('/addons/mods/delete', [ModsController::class, 'delete']);
+    Route::post('/addons/mods/upload', [ModsController::class, 'upload']);
+    Route::get('/addons/players', [PlayersController::class, 'index']);
+    Route::post('/addons/players/command', [PlayersController::class, 'command']);
+    Route::get('/addons/traffic', [TrafficController::class, 'index']);
+    Route::post('/addons/traffic/notes', [TrafficController::class, 'notes']);
+    Route::get('/addons/console', [ConsoleAddonController::class, 'index']);
+    Route::post('/addons/console/send', [ConsoleAddonController::class, 'send']);
+    Route::get('/addons/versions', [VersionsController::class, 'index']);
+    Route::post('/addons/versions/jar', [VersionsController::class, 'jar']);
+    Route::post('/addons/versions/image', [VersionsController::class, 'image']);
+    Route::get('/addons/icons', [IconsController::class, 'index']);
+    Route::post('/addons/icons/upload', [IconsController::class, 'upload']);
+    Route::post('/addons/icons/delete', [IconsController::class, 'delete']);
+    Route::get('/addons/properties', [PropertiesController::class, 'index']);
+    Route::post('/addons/properties/save', [PropertiesController::class, 'save']);
+});
+
+// Trash — the file-trash.js fetch-patch reroutes stock file-manager
+// deletes to trash/add; the Files-page panel drives the rest.
+Route::middleware(['auth'])->group(function () {
+    Route::get('/trash/list', [TrashApiController::class, 'listing']);
+    Route::post('/trash/add', [TrashApiController::class, 'add']);
+    Route::post('/trash/restore', [TrashApiController::class, 'restore']);
+    Route::post('/trash/destroy', [TrashApiController::class, 'destroy']);
+    Route::post('/trash/empty', [TrashApiController::class, 'emptyTrash']);
 });
 
 Route::middleware(['auth', AdminAuthenticate::class])->group(function () {
     Route::post('/addons/admin/toggle', [AddonsController::class, 'toggle']);
     Route::post('/addons/admin/marketplace/keys', [MarketplaceController::class, 'saveKeys']);
+    Route::post('/trash/purge', [TrashApiController::class, 'purge']);
 });

@@ -24,37 +24,90 @@ class TrashService
     /** @return array{moved: int, entries: array<int, TrashEntry>} */
     public static function add(Server $server, User $user, array $files): array
     {
-        $moved = 0;
-        $entries = [];
-
+        /* 1. Jail + normalize: relative path, every segment NAME_RE,
+         * never anything inside the trash dir itself. The stock file
+         * manager sends multi-segment paths (plugins/x.jar), so nested
+         * paths are allowed — but "..", absolute paths and hidden
+         * trash-dir references are not. */
+        $valid = [];
         foreach ($files as $raw) {
-            $name = basename((string) $raw);
-            $from = trim((string) $raw, '/');
-
-            if ($name === '' || $name === '.' || $name === '..'
-                || preg_match(self::NAME_RE, $name) !== 1
-                || $name === self::TRASH_DIR
-                || str_starts_with($from, self::TRASH_DIR . '/')) {
+            $path = trim((string) $raw, '/');
+            if ($path === '') {
                 continue;
             }
+            $segments = explode('/', $path);
+            $ok = true;
+            foreach ($segments as $seg) {
+                if (preg_match(self::NAME_RE, $seg) !== 1) {
+                    $ok = false;
+                    break;
+                }
+            }
+            if (!$ok || in_array(self::TRASH_DIR, $segments, true)) {
+                continue;
+            }
+            $valid[$path] = true;
+        }
+        $valid = array_keys($valid);
+        if ($valid === []) {
+            return ['moved' => 0, 'entries' => []];
+        }
 
-            self::ensureTrashDir($server);
+        /* 2. Verify existence (and capture is_dir/size) with one
+         * directory listing per distinct parent. The daemon does not
+         * report failures for renames of missing files, so this is the
+         * only reliable guard against phantom rows. */
+        $byParent = [];
+        foreach ($valid as $path) {
+            $parent = dirname($path);
+            $byParent[$parent === '.' ? '' : $parent][] = $path;
+        }
+
+        $existing = [];
+        foreach ($byParent as $parent => $paths) {
+            try {
+                $names = [];
+                foreach (Shared::fileRepo($server)->getDirectory('/' . $parent) as $entry) {
+                    if (!empty($entry['name'])) {
+                        $names[(string) $entry['name']] = $entry;
+                    }
+                }
+            } catch (\Throwable $e) {
+                continue; // unreadable parent: skip the whole group
+            }
+            foreach ($paths as $path) {
+                $name = basename($path);
+                if (isset($names[$name])) {
+                    $existing[] = [$path, $names[$name]];
+                }
+            }
+        }
+        if ($existing === []) {
+            return ['moved' => 0, 'entries' => []];
+        }
+
+        /* 3. Move verified entries into the trash dir. */
+        self::ensureTrashDir($server);
+        $moved = 0;
+        $entries = [];
+        foreach ($existing as [$path, $meta]) {
+            $name = basename($path);
             $trashName = time() . '-' . bin2hex(random_bytes(3)) . '-' . $name;
 
             try {
                 Shared::fileRepo($server)->renameFiles('/', [
-                    ['from' => $from, 'to' => self::TRASH_DIR . '/' . $trashName],
+                    ['from' => $path, 'to' => self::TRASH_DIR . '/' . $trashName],
                 ]);
             } catch (\Throwable $e) {
-                continue; // Wings failure: leave the file untouched, no row
+                continue;
             }
 
             $entries[] = TrashEntry::create([
                 'server_uuid' => $server->uuid,
-                'original_path' => '/' . $from,
+                'original_path' => '/' . $path,
                 'trash_name' => $trashName,
-                'is_dir' => false,
-                'size' => 0,
+                'is_dir' => empty($meta['file']),
+                'size' => (int) ($meta['size'] ?? 0),
                 'deleted_by' => $user->id,
                 'created_at' => now(),
             ]);
@@ -83,6 +136,25 @@ class TrashService
 
         if ($target === '' || preg_match(self::NAME_RE, basename($target)) !== 1) {
             throw new \RuntimeException('Entry has an unusable original path.');
+        }
+
+        /* verify the trash copy still exists (daemon will not report
+         * failures for renames of missing files) */
+        try {
+            $found = false;
+            foreach (Shared::fileRepo($server)->getDirectory('/' . self::TRASH_DIR) as $e) {
+                if ((string) ($e['name'] ?? '') === $entry->trash_name) {
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                throw new \RuntimeException('The trashed file is gone from the server.');
+            }
+        } catch (\RuntimeException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            throw new \RuntimeException('Could not reach the Wings daemon.');
         }
 
         try {
