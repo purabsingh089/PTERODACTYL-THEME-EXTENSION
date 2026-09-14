@@ -254,4 +254,88 @@ class MotdController extends Controller
 
         return response()->json($payload);
     }
+
+    /**
+     * AI MOTD generation, merged into the MOTD Creator tab. Generates a
+     * suggestion for review — never writes the file. Same auth/gate
+     * shape as index(); apply happens through save().
+     */
+    public function aiGenerate(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if ($user === null) {
+            return response()->json(['error' => 'Authentication required.'], 401);
+        }
+
+        $server = Shared::resolveAccessibleServer((string) $request->json('server', ''), $user);
+        if ($server === null) {
+            return response()->json(['error' => 'Server not found or not accessible.'], 404);
+        }
+
+        $client = app(\Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services\MonkeyCodeClient::class);
+        $prompts = app(\Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services\PromptBuilder::class);
+
+        if (!$client->hasApiKey()) {
+            return response()->json(['error' => 'AI is not configured yet. Add an API key in Admin → Extensions → Primus → AI.'], 422);
+        }
+        if (Shared::rateLimited((int) $user->id, 'aimotd')) {
+            return response()->json(['error' => 'Rate limit exceeded. Try again in a few minutes.'], 429);
+        }
+
+        $prompt = trim((string) $request->json('prompt', ''));
+        if (mb_strlen($prompt) > 200 || mb_strlen($prompt) < 3) {
+            return response()->json(['error' => 'Prompt must be 3-200 characters.'], 422);
+        }
+        if (preg_match('/[\p{C}]/u', $prompt)) {
+            return response()->json(['error' => 'Prompt may not contain control characters.'], 422);
+        }
+
+        $eggName = (string) ($server->egg->name ?? '');
+        if (!$this->eggMatches($eggName)) {
+            return response()->json(['error' => 'AI MOTD is for Java Minecraft servers.'], 422);
+        }
+
+        try {
+            $content = $this->fileRepo($server)->getContent('server.properties');
+        } catch (DaemonConnectionException $e) {
+            if ($e->getStatusCode() === 404) {
+                return response()->json(['error' => 'AI MOTD is for Java Minecraft servers.'], 422);
+            }
+            $e->report();
+
+            return response()->json(['error' => 'Could not reach the Wings daemon.'], 502);
+        }
+        if (!preg_match(self::JAVA_MARKER, $content)) {
+            return response()->json(['error' => 'AI MOTD is for Java Minecraft servers.'], 422);
+        }
+
+        AddonGate::audit($user, $server, 'aimotd', 'generate', mb_substr($prompt, 0, 64));
+
+        try {
+            $result = $client->complete(
+                'aimotd',
+                $prompts->aimotdMessages($prompt, [
+                    'egg' => $eggName,
+                    'name' => $server->name ?? '',
+                ]),
+                $user->id,
+                $server->uuid
+            );
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => $e->getMessage()], 502);
+        }
+
+        $parsed = Shared::normalizeAiJson($result['content']);
+        $motd = is_string($parsed['motd'] ?? null) ? $parsed['motd'] : (string) ($parsed['suggestion'] ?? '');
+        $motd = preg_replace('/[\p{C}\\\\]/u', '', $motd) ?? '';
+        $visible = preg_replace('/§./us', '', $motd);
+        if (mb_strlen((string) $visible) > self::LIMIT) {
+            $motd = mb_substr($motd, 0, self::LIMIT);
+        }
+        if ($motd === '') {
+            return response()->json(['error' => 'The AI provider returned an empty MOTD.'], 502);
+        }
+
+        return response()->json(['ok' => true, 'motd' => $motd]);
+    }
 }

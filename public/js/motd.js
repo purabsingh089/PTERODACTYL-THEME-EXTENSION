@@ -189,6 +189,11 @@
             return '<button type="button" class="pr-motd-tpl" data-idx="' + idx + '">' + U.esc(t.name) + "</button>";
           }).join("") +
         "</div>" +
+        '<div class="pr-motd-ai">' +
+          '<input class="pr-motd-ai-prompt" placeholder="Describe the vibe — AI writes a MOTD" maxlength="200">' +
+          '<button type="button" class="pr-motd-ai-btn">Generate with AI</button>' +
+          '<span class="pr-motd-ai-hint"></span>' +
+        "</div>" +
         '<div class="pr-motd-tools">' +
           '<button type="button" class="pr-motd-fmt" data-code="\u00a7l" title="Bold">\u00a7l</button>' +
           '<button type="button" class="pr-motd-fmt" data-code="\u00a7o" title="Italic">\u00a7o</button>' +
@@ -262,6 +267,37 @@
         input.focus();
         return;
       }
+    });
+
+    /* ── AI generation (review then apply through the normal save) ── */
+    var aiPrompt = card.querySelector(".pr-motd-ai-prompt");
+    var aiBtn = card.querySelector(".pr-motd-ai-btn");
+    var aiHint = card.querySelector(".pr-motd-ai-hint");
+    if (state && state.canWrite === false) {
+      aiBtn.disabled = true;
+      aiHint.textContent = "Read-only";
+    }
+    aiBtn.addEventListener("click", function () {
+      var p = (aiPrompt.value || "").trim();
+      if (p.length < 3) {
+        aiHint.textContent = "Describe it in at least 3 characters.";
+        return;
+      }
+      aiBtn.disabled = true;
+      aiHint.textContent = "Generating…";
+      P.api("motd/ai/generate", { method: "POST", json: { server: serverId(), prompt: p } })
+        .then(function (res) {
+          aiBtn.disabled = false;
+          aiHint.textContent = "Suggestion loaded — edit or press Save.";
+          input.value = res.motd || "";
+          refresh();
+          input.focus();
+        })
+        .catch(function (err) {
+          aiBtn.disabled = false;
+          aiHint.textContent = "";
+          P.toast("Generate failed", U.esc(err.message || "unknown"), "error");
+        });
     });
 
     card.querySelector(".pr-motd-close").addEventListener("click", close);

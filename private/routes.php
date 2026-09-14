@@ -107,6 +107,7 @@ Route::middleware(['auth'])->post('/proxy/power', function (\Illuminate\Http\Req
 Route::middleware(['auth'])->group(function () {
     Route::get('/motd', [MotdController::class, 'index']);
     Route::post('/motd', [MotdController::class, 'save']);
+    Route::post('/motd/ai/generate', [MotdController::class, 'aiGenerate']);
 });
 
 // Addon framework — hub + Plugin Manager (pilot). All gated through
