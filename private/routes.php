@@ -21,9 +21,7 @@ use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\PluginsCo
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\MarketplaceController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\WorldsController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\ModsController;
-use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\PlayersController;
-use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\TrafficController;
-use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\ConsoleAddonController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\PlayerStatsController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\VersionsController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\IconsController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\TrashController;
@@ -119,6 +117,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/addons/plugins/toggle', [PluginsController::class, 'toggle']);
     Route::post('/addons/plugins/delete', [PluginsController::class, 'delete']);
     Route::post('/addons/plugins/upload', [PluginsController::class, 'upload']);
+    Route::get('/addons/plugins/search', [PluginsController::class, 'search']);
     Route::get('/addons/marketplace/search', [MarketplaceController::class, 'search']);
     Route::get('/addons/marketplace/versions', [MarketplaceController::class, 'versions']);
     Route::post('/addons/marketplace/install', [MarketplaceController::class, 'install']);
@@ -130,12 +129,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/addons/mods/toggle', [ModsController::class, 'toggle']);
     Route::post('/addons/mods/delete', [ModsController::class, 'delete']);
     Route::post('/addons/mods/upload', [ModsController::class, 'upload']);
-    Route::get('/addons/players', [PlayersController::class, 'index']);
-    Route::post('/addons/players/command', [PlayersController::class, 'command']);
-    Route::get('/addons/traffic', [TrafficController::class, 'index']);
-    Route::post('/addons/traffic/notes', [TrafficController::class, 'notes']);
-    Route::get('/addons/console', [ConsoleAddonController::class, 'index']);
-    Route::post('/addons/console/send', [ConsoleAddonController::class, 'send']);
+    Route::get('/addons/mods/search', [ModsController::class, 'search']);
     Route::get('/addons/versions', [VersionsController::class, 'index']);
     Route::post('/addons/versions/jar', [VersionsController::class, 'jar']);
     Route::post('/addons/versions/image', [VersionsController::class, 'image']);
@@ -144,6 +138,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/addons/icons/delete', [IconsController::class, 'delete']);
     Route::get('/addons/properties', [PropertiesController::class, 'index']);
     Route::post('/addons/properties/save', [PropertiesController::class, 'save']);
+});
+
+// Player Stats — online, joins, sessions, feed, actions, allocations.
+Route::middleware(['auth'])->group(function () {
+    Route::get('/player-stats', [PlayerStatsController::class, 'index']);
+    Route::post('/player-stats/command', [PlayerStatsController::class, 'command']);
+    Route::post('/player-stats/notes', [PlayerStatsController::class, 'notes']);
 });
 
 // Trash — the file-trash.js fetch-patch reroutes stock file-manager

@@ -5,6 +5,7 @@ namespace Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services\PathGuard;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services\MarketplaceClient;
 use Pterodactyl\Exceptions\Http\Connection\DaemonConnectionException;
 use Pterodactyl\Http\Controllers\Controller;
 use Pterodactyl\Models\Server;
@@ -40,7 +41,7 @@ class PluginsController extends Controller
 
         $jars = [];
         try {
-            foreach (['plugins', 'mods'] as $dir) {
+            foreach (['plugins'] as $dir) {
                 try {
                     $entries = $this->repo($server)->getDirectory($dir);
                 } catch (DaemonConnectionException $e) {
@@ -77,6 +78,7 @@ class PluginsController extends Controller
         return response()->json([
             'ok' => true,
             'jars' => $jars,
+            'detect' => $this->detectPlatform($server),
             'perms' => [
                 'canUpdate' => $user->root_admin || $server->owner_id === $user->id
                     || in_array('file.update', (array) ($subuser?->permissions ?? []), true),
@@ -269,6 +271,51 @@ class PluginsController extends Controller
         }
 
         return response()->json(['ok' => true, 'name' => basename($path)]);
+    }
+
+    /** Search Modrinth/CurseForge for plugins (type=plugin). */
+    public function search(Request $request): JsonResponse
+    {
+        $server = null;
+        $gate = AddonGate::guard($request, 'plugins', $server);
+        if ($gate !== null) {
+            return $gate;
+        }
+        $q = mb_substr(trim((string) $request->input('q', '')), 0, 80);
+        if ($q === '') {
+            return response()->json(['error' => 'Empty search.'], 422);
+        }
+        $provider = (string) $request->input('provider', 'modrinth');
+        if (!in_array($provider, ['modrinth', 'curseforge', 'all'], true)) {
+            $provider = 'modrinth';
+        }
+
+        try {
+            $res = MarketplaceClient::search($q, $provider, 'plugin');
+        } catch (\Throwable $e) {
+            return response()->json(['error' => $e->getMessage() ?: 'Search failed.'], 502);
+        }
+
+        return response()->json([
+            'ok' => true,
+            'results' => $res['results'],
+            'detect' => $this->detectPlatform($server),
+        ]);
+    }
+
+    /** @return array<string, string> best-effort platform detect from the egg name */
+    private function detectPlatform(Server $server): array
+    {
+        $hay = mb_strtolower((string) ($server->egg->name ?? ''));
+        $platform = '';
+        foreach (['purpur', 'paper', 'spigot'] as $p) {
+            if (str_contains($hay, $p)) {
+                $platform = $p;
+                break;
+            }
+        }
+
+        return ['platform' => $platform];
     }
 
     private function hasPerm(\Pterodactyl\Models\User $user, Server $server, string $perm): bool

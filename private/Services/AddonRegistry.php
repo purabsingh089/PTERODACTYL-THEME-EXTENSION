@@ -4,9 +4,7 @@ namespace Pterodactyl\BlueprintFramework\Extensions\{identifier}\Services;
 
 /**
  * AddonRegistry — declarative manifests for every Primus addon.
- * 'plugins' is live this cycle; the rest are visible roadmap cards
- * (comingSoon) implemented by later sub-projects. Permissions are
- * dotted strings verified against Pterodactyl's Permission constants.
+ * Permissions are dotted strings verified against Pterodactyl's Permission constants.
  */
 class AddonRegistry
 {
@@ -15,18 +13,12 @@ class AddonRegistry
     {
         return [
             self::manifest('plugins'),
-            self::manifest('marketplace'),
-            self::manifest('worlds'),
             self::manifest('mods'),
-            self::manifest('players'),
-            self::manifest('traffic'),
-            self::manifest('console'),
+            self::manifest('worlds'),
+            self::manifest('player-stats'),
             self::manifest('versions'),
             self::manifest('icons'),
-            self::manifest('trash'),
             self::manifest('properties'),
-            self::manifest('motd'),
-            self::manifest('aimotd'),
         ];
     }
 
@@ -47,20 +39,11 @@ class AddonRegistry
         $live = [
             'plugins' => [
                 'id' => 'plugins',
-                'title' => 'Plugin Manager',
-                'description' => 'List, enable, disable, upload and delete plugin & mod jars.',
+                'title' => 'Plugin Installer',
+                'description' => 'Browse, install and manage plugin jars with built-in search.',
                 'category' => 'files',
                 'perms' => 'file.read',
                 'icon' => 'plugins',
-                'comingSoon' => false,
-            ],
-            'marketplace' => [
-                'id' => 'marketplace',
-                'title' => 'Marketplace',
-                'description' => 'Search and install mods & plugins from Modrinth and CurseForge.',
-                'category' => 'files',
-                'perms' => 'file.read',
-                'icon' => 'marketplace',
                 'comingSoon' => false,
             ],
             'worlds' => [
@@ -72,34 +55,53 @@ class AddonRegistry
                 'icon' => 'worlds',
                 'comingSoon' => false,
             ],
-        ];
-        $soon = [
-            'mods' => ['Mod Manager', 'files'],
-            'players' => ['Player Manager', 'management'],
-            'traffic' => ['Traffic Manager', 'management'],
-            'console' => ['Advanced Console', 'console'],
-            'versions' => ['Version Manager', 'management'],
-            'icons' => ['Icon Manager', 'files'],
-            'trash' => ['Trash Bin', 'files'],
-            'properties' => ['Properties Manager', 'files'],
-            'motd' => ['MOTD Manager', 'files'],
-            'aimotd' => ['AI MOTD', 'ai'],
-        ];
-        if (isset($live[$id])) {
-            return $live[$id];
-        }
-        if (isset($soon[$id])) {
-            return [
-                'id' => $id,
-                'title' => $soon[$id][0],
-                'description' => 'Coming in a future Primus update.',
-                'category' => $soon[$id][1],
+            'mods' => [
+                'id' => 'mods',
+                'title' => 'Mod Manager',
+                'description' => 'Browse, install and manage Fabric, Forge and NeoForge mods with built-in search.',
+                'category' => 'files',
                 'perms' => 'file.read',
-                'icon' => $id,
-                'comingSoon' => true,
-            ];
-        }
+                'icon' => 'mods',
+                'comingSoon' => false,
+            ],
+            'player-stats' => [
+                'id' => 'player-stats',
+                'title' => 'Player Stats',
+                'description' => 'Online players, join history, sessions, actions and allocations.',
+                'category' => 'management',
+                'perms' => 'control.console',
+                'icon' => 'players',
+                'comingSoon' => false,
+            ],
+            'versions' => [
+                'id' => 'versions',
+                'title' => 'Version Manager',
+                'description' => 'Switch the server jar and Docker image used on next start.',
+                'category' => 'management',
+                'perms' => 'startup.read',
+                'icon' => 'versions',
+                'comingSoon' => false,
+            ],
+            'icons' => [
+                'id' => 'icons',
+                'title' => 'Icon Manager',
+                'description' => 'Upload or remove the Minecraft server-icon.png shown in the server list.',
+                'category' => 'files',
+                'perms' => 'file.read',
+                'icon' => 'icons',
+                'comingSoon' => false,
+            ],
+            'properties' => [
+                'id' => 'properties',
+                'title' => 'Properties Manager',
+                'description' => 'Edit safe Minecraft server.properties keys without touching ports or secrets.',
+                'category' => 'files',
+                'perms' => 'file.read',
+                'icon' => 'properties',
+                'comingSoon' => false,
+            ],
+        ];
 
-        return null;
+        return $live[$id] ?? null;
     }
 }

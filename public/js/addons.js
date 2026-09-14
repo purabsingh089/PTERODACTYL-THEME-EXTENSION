@@ -13,6 +13,7 @@
 
   var hubState = null;    // GET /addons payload
   var pluginsState = null; // GET /addons/plugins payload
+  var pluginsTab = "installed"; // plugins panel active tab
   var worldsState = null; // {java, worlds, current, perms} for the open panel
   var mask = null;
   var activePanel = null; // null = hub grid, "plugins" = plugin panel
@@ -162,9 +163,13 @@
   }
 
   function openPanel(id) {
-    if (id === "marketplace") { openMarketplace(); return; }
     if (id === "worlds") { openWorlds(); return; }
-    if (id !== "plugins") return; /* plugins, marketplace + worlds have panels */
+    if (id === "mods") { openMods(); return; }
+    if (id === "player-stats") { openPlayerStats(); return; }
+    if (id === "versions") { openVersions(); return; }
+    if (id === "icons") { openIcons(); return; }
+    if (id === "properties") { openProperties(); return; }
+    if (id !== "plugins") return;
     activePanel = "plugins";
     var back = mask.querySelector(".pr-addons-back");
     back.style.display = "";
@@ -180,67 +185,58 @@
       });
   }
 
-  /* ── marketplace panel ───────────────────────────────────────── */
-  function openMarketplace() {
-    activePanel = "marketplace";
-    mask.querySelector(".pr-addons-back").style.display = "";
-    var body = mask.querySelector(".pr-addons-body");
-    var hasCreate = !!(pluginsState && pluginsState.perms && pluginsState.perms.canCreate);
-    body.innerHTML =
+  /* ── search UI (shared by Mod Manager + Plugin Installer) ────── */
+  /* opts: { type: "mod"|"plugin", endpoint: "addons/mods/search"|...,
+     detect: {loader?, version?, platform?}, onInstalled: fn } */
+  function searchUI(host, opts) {
+    var state = { provider: "modrinth", seq: 0 };
+    var chips = opts.type === "mod"
+      ? ["fabric", "quilt", "neoforge", "forge"]
+      : [];
+    var detected = (opts.detect && (opts.detect.loader || opts.detect.platform)) || "";
+
+    host.innerHTML =
       '<div class="pr-mkt-tabs">' +
         '<button class="pr-mkt-tab" data-provider="all">All</button>' +
         '<button class="pr-mkt-tab is-active" data-provider="modrinth">Modrinth</button>' +
         '<button class="pr-mkt-tab" data-provider="curseforge">CurseForge</button>' +
         '<span class="pr-mkt-spacer"></span>' +
-        '<button class="pr-mkt-type is-active" data-type="mod">Mods</button>' +
-        '<button class="pr-mkt-type" data-type="plugin">Plugins</button>' +
+        (chips.length
+          ? chips.map(function (c) {
+              return '<button class="pr-mkt-tab pr-mkt-chip-btn' + (c === detected ? " is-active" : "") + '" data-loader="' + c + '">' + c + "</button>";
+            }).join("")
+          : "") +
       "</div>" +
-      '<input class="pr-mkt-input" placeholder="Search mods and plugins…" aria-label="Search marketplace" />' +
+      '<div class="pr-mkt-row">' +
+        '<input class="pr-mkt-input" placeholder="Search ' + (opts.type === "mod" ? "mods" : "plugins") + '…" aria-label="Search" />' +
+        '<input class="pr-mkt-input pr-mkt-version" placeholder="MC version" value="' + U.esc((opts.detect && opts.detect.version) || "") + '" />' +
+      "</div>" +
       '<div class="pr-mkt-grid"></div>';
-    var input = body.querySelector(".pr-mkt-input");
-    var grid = body.querySelector(".pr-mkt-grid");
-    var state = { provider: "modrinth", type: "mod", seq: 0 };
 
-    /* perms gate the install buttons; fetch them when the marketplace opens
-       straight from the hub (plugins panel was never rendered this session). */
-    if (!pluginsState || !pluginsState.perms) {
-      P.api("addons/plugins?server=" + encodeURIComponent(serverId()))
-        .then(function (payload) {
-          if (!mask || activePanel !== "marketplace") return;
-          pluginsState = payload;
-          var nowCreate = !!(pluginsState && pluginsState.perms && pluginsState.perms.canCreate);
-          if (nowCreate !== hasCreate) {
-            hasCreate = nowCreate;
-            body.querySelectorAll(".pr-mkt-card").forEach(function (c) {
-              c.classList.toggle("is-readonly", !hasCreate);
-              var btn = c.querySelector(".pr-mkt-card__btn");
-              if (btn) btn.textContent = hasCreate ? "Versions" : "View";
-            });
-          }
-        })
-        .catch(function () { /* read-only stays the safe default */ });
-    }
+    var input = host.querySelector(".pr-mkt-input:not(.pr-mkt-version)");
+    var versionInput = host.querySelector(".pr-mkt-version");
+    var grid = host.querySelector(".pr-mkt-grid");
+    var loader = detected || "";
 
-    body.querySelector(".pr-mkt-tabs").addEventListener("click", function (e) {
+    host.querySelector(".pr-mkt-tabs").addEventListener("click", function (e) {
       var t = e.target.closest(".pr-mkt-tab");
-      if (t) {
-        body.querySelectorAll(".pr-mkt-tab").forEach(function (b) { b.classList.remove("is-active"); });
-        t.classList.add("is-active");
-        state.provider = t.getAttribute("data-provider");
-        doSearch();
-        return;
-      }
-      var ty = e.target.closest(".pr-mkt-type");
-      if (ty) {
-        body.querySelectorAll(".pr-mkt-type").forEach(function (b) { b.classList.remove("is-active"); });
-        ty.classList.add("is-active");
-        state.type = ty.getAttribute("data-type");
-        doSearch();
-      }
+      if (!t) return;
+      var isLoader = t.hasAttribute("data-loader");
+      host.querySelectorAll(".pr-mkt-tab").forEach(function (b) {
+        if (isLoader === b.hasAttribute("data-loader")) b.classList.remove("is-active");
+      });
+      t.classList.add("is-active");
+      if (isLoader) { loader = t.getAttribute("data-loader"); }
+      else { state.provider = t.getAttribute("data-provider"); }
+      doSearch();
     });
 
     var debounce = null;
     input.addEventListener("input", function () {
+      clearTimeout(debounce);
+      debounce = setTimeout(doSearch, 350);
+    });
+    versionInput.addEventListener("input", function () {
       clearTimeout(debounce);
       debounce = setTimeout(doSearch, 350);
     });
@@ -250,11 +246,14 @@
       if (!q) { grid.innerHTML = ""; return; }
       var seq = ++state.seq;
       grid.innerHTML = '<div class="pr-addons-loading"><span class="pr-typing-dots"><span></span><span></span><span></span></span></div>';
-      P.api("addons/marketplace/search?server=" + encodeURIComponent(serverId()) +
-        "&q=" + encodeURIComponent(q) + "&provider=" + state.provider + "&type=" + state.type)
+      var qs = "&q=" + encodeURIComponent(q) + "&provider=" + state.provider;
+      if (opts.type === "mod" && loader) qs += "&loader=" + encodeURIComponent(loader);
+      var ver = versionInput.value.trim();
+      if (ver) qs += "&version=" + encodeURIComponent(ver);
+      P.api(opts.endpoint + "?server=" + encodeURIComponent(serverId()) + qs)
         .then(function (payload) {
           if (seq !== state.seq || !mask) return;
-          renderResults(payload.results || []);
+          renderResults((payload && payload.results) || []);
         })
         .catch(function (err) {
           if (seq !== state.seq || !mask) return;
@@ -265,17 +264,18 @@
     function renderResults(list) {
       if (!list.length) { grid.innerHTML = '<div class="pr-addons-empty">No results.</div>'; return; }
       grid.innerHTML = "";
+      var canInstall = !!(opts.perms && opts.perms.canCreate);
       list.forEach(function (r) {
-        var card = U.el("div", "pr-mkt-card" + (hasCreate ? "" : " is-readonly"),
+        var card = U.el("div", "pr-mkt-card" + (canInstall ? "" : " is-readonly"),
           '<img class="pr-mkt-card__icon" src="' + U.esc(r.icon) + '" alt="" onerror="this.style.display=\'none\'" />' +
           '<div class="pr-mkt-card__text">' +
             '<div class="pr-mkt-card__title">' + U.esc(r.name) + "</div>" +
             '<div class="pr-mkt-card__meta">' + U.esc(r.author) + " · " + fmtDownloads(r.downloads) + "</div>" +
             '<div class="pr-mkt-card__summary">' + U.esc(r.summary) + "</div>" +
           "</div>" +
-          '<button class="pr-mkt-card__btn" data-project="' + U.esc(r.id) + '">' + (hasCreate ? "Versions" : "View") + "</button>");
+          '<button class="pr-mkt-card__btn" data-project="' + U.esc(r.id) + '">' + (canInstall ? "Versions" : "View") + "</button>");
         card.querySelector(".pr-mkt-card__btn").addEventListener("click", function () {
-          if (!hasCreate) { P.toast("Install disabled", "You need file-create permission to install.", "warning"); return; }
+          if (!canInstall) { P.toast("Install disabled", "You need file-create permission to install.", "warning"); return; }
           openVersions(r);
         });
         grid.appendChild(card);
@@ -291,13 +291,13 @@
           '<button class="pr-mkt-picker__close" type="button">&times;</button>' +
         "</div>" +
         '<div class="pr-mkt-picker__body"><div class="pr-addons-loading"><span class="pr-typing-dots"><span></span><span></span><span></span></span></div></div>');
-      body.appendChild(modal);
+      host.appendChild(modal);
       modal.querySelector(".pr-mkt-picker__close").addEventListener("click", function () { modal.remove(); });
       P.api("addons/marketplace/versions?server=" + encodeURIComponent(serverId()) +
-        "&provider=" + encodeURIComponent(prov) + "&project=" + encodeURIComponent(r.id) + "&type=" + state.type)
+        "&provider=" + encodeURIComponent(prov) + "&project=" + encodeURIComponent(r.id) + "&type=" + opts.type)
         .then(function (payload) {
           if (seq !== state.seq || !mask) { modal.remove(); return; }
-          renderVersions(modal, payload.versions || []);
+          renderVersions(modal, (payload && payload.versions) || []);
         })
         .catch(function (err) {
           modal.querySelector(".pr-mkt-picker__body").innerHTML =
@@ -325,34 +325,25 @@
             "</div>" +
             '<button class="pr-mkt-version__install" data-v="' + U.esc(v.id) + '">Install</button>');
           row.querySelector(".pr-mkt-version__install").addEventListener("click", function () {
-            install(prov, state.type, r.id, v);
+            P.api("addons/marketplace/install", {
+              method: "POST",
+              json: { server: serverId(), provider: prov, project: r.id, version: v.id, type: opts.type },
+            })
+              .then(function (res) {
+                P.toast("Installed", U.esc(res.name), "success");
+                modal.remove();
+                if (opts.onInstalled) opts.onInstalled();
+              })
+              .catch(function (err) {
+                P.toast("Install failed", U.esc(err.message || "unknown"), "error");
+              });
           });
           rows.appendChild(row);
         });
       }
     }
-
-    function install(provider, type, project, v) {
-      P.api("addons/marketplace/install", {
-        method: "POST",
-        json: { server: serverId(), provider: provider, project: project, version: v.id, type: type },
-      })
-        .then(function (res) {
-          P.toast("Installed", U.esc(res.name), "success");
-          /* refresh the jar table so the plugins panel shows the new file */
-          P.api("addons/plugins?server=" + encodeURIComponent(serverId()))
-            .then(function (p) { if (mask) pluginsState = p; })
-            .catch(function () {});
-        })
-        .catch(function (err) {
-          P.toast("Install failed", U.esc(err.message || "unknown"), "error");
-        });
-    }
-
-    function fmtDownloads(n) { return n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e3 ? (n / 1e3).toFixed(1) + "k" : String(n); }
-    function fmtBytes(n) { return n >= 1048576 ? (n / 1048576).toFixed(1) + " MiB" : Math.max(1, Math.round(n / 1024)) + " KiB"; }
-    function fmtDate(s) { var d = new Date(s); return isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10); }
   }
+
 
   /* ── worlds panel ────────────────────────────────────────────── */
   function openWorlds() {
@@ -495,10 +486,363 @@
     setTimeout(function () { input.focus(); }, 30);
   }
 
+  function panelLoad(id, path, render) {
+    activePanel = id;
+    mask.querySelector(".pr-addons-back").style.display = "";
+    var body = mask.querySelector(".pr-addons-body");
+    body.innerHTML = '<div class="pr-addons-loading"><span class="pr-typing-dots"><span></span><span></span><span></span></span></div>';
+    P.api(path + (path.indexOf("?") >= 0 ? "&" : "?") + "server=" + encodeURIComponent(serverId()))
+      .then(function (payload) { if (mask) render(body, payload); })
+      .catch(function (err) {
+        body.innerHTML = '<div class="pr-addons-empty">' + U.esc(err.message || "Failed to load.") + "</div>";
+      });
+  }
+
+  function javaEmpty(body, msg) {
+    body.innerHTML = '<div class="pr-plugins-panel"><div class="pr-addons-empty">' + U.esc(msg) + "</div></div>";
+  }
+
+  function typedConfirm(title, name, then) {
+    var modal = U.el(
+      "div",
+      "pr-addons-confirm pr-scale-in",
+      '<div class="pr-addons-confirm__title">' + U.esc(title) + "</div>" +
+      "<p>Type <code>" + U.esc(name) + "</code> to confirm. This cannot be undone.</p>" +
+      '<input class="pr-addons-confirm__input" type="text" placeholder="' + U.esc(name) + '">' +
+      '<div class="pr-addons-confirm__acts">' +
+        '<button type="button" class="pr-addons-confirm__no">Cancel</button>' +
+        '<button type="button" class="pr-addons-confirm__yes" disabled>Delete</button>' +
+      "</div>"
+    );
+    var backdrop = U.el("div", "pr-addons-confirm-mask", "");
+    backdrop.appendChild(modal);
+    mask.appendChild(backdrop);
+    var input = modal.querySelector(".pr-addons-confirm__input");
+    var yes = modal.querySelector(".pr-addons-confirm__yes");
+    input.addEventListener("input", function () { yes.disabled = input.value !== name; });
+    modal.querySelector(".pr-addons-confirm__no").addEventListener("click", function () { backdrop.remove(); });
+    backdrop.addEventListener("click", function (e) { if (e.target === backdrop) backdrop.remove(); });
+    yes.addEventListener("click", function () { backdrop.remove(); then(); });
+    setTimeout(function () { input.focus(); }, 30);
+  }
+
+  /* ── mods panel ──────────────────────────────────────────────── */
+  function openMods(tab) {
+    panelLoad("mods", "addons/mods", function (body, payload) { renderMods(body, payload, tab || "installed"); });
+  }
+
+  function renderMods(body, payload, tab) {
+    var jars = (payload && payload.jars) || [];
+    var perms = (payload && payload.perms) || {};
+    var detect = (payload && payload.detect) || {};
+
+    var rows = jars.map(function (j) {
+      var toggleBtn = perms.canUpdate
+        ? '<button type="button" class="pr-addons-act" data-mtoggle="' + U.esc(j.name) + '">' + (j.enabled ? "Disable" : "Enable") + "</button>"
+        : "";
+      var deleteBtn = perms.canDelete
+        ? '<button type="button" class="pr-addons-act pr-addons-act--danger" data-mdelete="' + U.esc(j.name) + '">Delete</button>'
+        : "";
+      return '<tr class="pr-addons-row"><td class="pr-addons-row__name">' + U.esc(j.name) + "</td>" +
+        '<td class="pr-addons-row__size">' + fmtBytes(j.size) + "</td>" +
+        '<td><span class="pr-addons-pill" data-state="' + (j.enabled ? "on" : "off") + '">' + (j.enabled ? "enabled" : "disabled") + "</span></td>" +
+        '<td class="pr-addons-row__acts">' + toggleBtn + deleteBtn + "</td></tr>";
+    }).join("");
+    var upload = perms.canCreate
+      ? '<div class="pr-addons-upload" id="pr-mods-dropzone"><input type="file" accept=".jar" class="pr-mods-file" hidden>' +
+        '<button type="button" class="pr-addons-upload__btn">Upload .jar</button><span class="pr-addons-upload__hint">or drop it here</span></div>'
+      : "";
+
+    body.innerHTML =
+      '<div class="pr-plugins-panel">' +
+        '<div class="pr-panel-tabs" role="tablist">' +
+          '<button type="button" class="pr-panel-tab' + (tab !== "search" ? " is-active" : "") + '" data-atab="installed">Installed (' + jars.length + ")</button>" +
+          '<button type="button" class="pr-panel-tab' + (tab === "search" ? " is-active" : "") + '" data-atab="search">Search &amp; Install</button>' +
+        "</div>" +
+        '<div class="pr-panel-pane"' + (tab === "search" ? " hidden" : "") + ">" +
+          '<div class="pr-plugins-panel__head"><span class="pr-plugins-panel__hint">Mod jars in mods/</span></div>' +
+          '<table class="pr-addons-table"><thead><tr><th>Mod</th><th>Size</th><th>State</th><th></th></tr></thead><tbody>' +
+          (rows || '<tr><td colspan="4" class="pr-addons-empty">No mod jars found.</td></tr>') + "</tbody></table>" + upload +
+        "</div>" +
+        '<div class="pr-panel-pane pr-mods-search"' + (tab === "search" ? "" : " hidden") + "></div>" +
+      "</div>";
+
+    if (tab === "search") {
+      searchUI(body.querySelector(".pr-mods-search"), {
+        type: "mod",
+        endpoint: "addons/mods/search",
+        detect: detect,
+        perms: perms,
+        onInstalled: function () { openMods("installed"); },
+      });
+    }
+
+    body.querySelectorAll(".pr-panel-tab").forEach(function (t) {
+      t.addEventListener("click", function () { openMods(t.dataset.atab === "search" ? "search" : "installed"); });
+    });
+
+    if (!body.getAttribute("data-pr-mods-bound")) {
+      body.setAttribute("data-pr-mods-bound", "1");
+      body.addEventListener("click", function (e) {
+        var t = e.target.closest("[data-mtoggle]");
+        if (t) {
+          P.api("addons/mods/toggle", { method: "POST", json: { server: serverId(), name: t.dataset.mtoggle.replace(/\.jar(\.disabled)?$/, "") } })
+            .then(function (res) { P.toast(res.enabled ? "Mod enabled" : "Mod disabled", U.esc(t.dataset.mtoggle), "success"); openMods("installed"); })
+            .catch(function (err) { P.toast("Toggle failed", U.esc(err.message || "unknown"), "error"); });
+          return;
+        }
+        var d = e.target.closest("[data-mdelete]");
+        if (d) {
+          typedConfirm("Delete mod", d.dataset.mdelete, function () {
+            P.api("addons/mods/delete", { method: "POST", json: { server: serverId(), name: d.dataset.mdelete, confirm: d.dataset.mdelete } })
+              .then(function () { P.toast("Mod deleted", U.esc(d.dataset.mdelete), "success"); openMods("installed"); })
+              .catch(function (err) { P.toast("Delete failed", U.esc(err.message || "unknown"), "error"); });
+          });
+        }
+      });
+    }
+    var fileInput = body.querySelector(".pr-mods-file");
+    var zone = body.querySelector("#pr-mods-dropzone");
+    function up(file) {
+      if (!/\.jar$/i.test(file.name)) { P.toast("Upload rejected", "Only .jar files are accepted.", "error"); return; }
+      var reader = new FileReader();
+      reader.onload = function () {
+        P.api("addons/mods/upload", { method: "POST", json: { server: serverId(), name: file.name, content: String(reader.result).split(",")[1] || "" } })
+          .then(function (res) { P.toast("Mod uploaded", U.esc(res.name), "success"); openMods("installed"); })
+          .catch(function (err) { P.toast("Upload failed", U.esc(err.message || "unknown"), "error"); });
+      };
+      reader.readAsDataURL(file);
+    }
+    if (fileInput) fileInput.addEventListener("change", function () { if (fileInput.files && fileInput.files[0]) up(fileInput.files[0]); });
+    if (zone) {
+      zone.addEventListener("dragover", function (e) { e.preventDefault(); zone.classList.add("is-drag"); });
+      zone.addEventListener("dragleave", function () { zone.classList.remove("is-drag"); });
+      zone.addEventListener("drop", function (e) { e.preventDefault(); zone.classList.remove("is-drag"); if (e.dataTransfer.files && e.dataTransfer.files[0]) up(e.dataTransfer.files[0]); });
+    }
+  }
+
+  /* ── player stats panel ───────────────────────────────────────── */
+  function openPlayerStats() { panelLoad("player-stats", "player-stats", renderPlayerStats); }
+
+  function renderPlayerStats(body, payload) {
+    if (!payload.java) { javaEmpty(body, "Player Stats is for Java Minecraft servers."); return; }
+    var perms = payload.perms || {};
+    var totals = payload.totals || {};
+    var players = payload.players || [];
+    var feed = payload.feed || [];
+    var online = payload.online || [];
+    var allocs = payload.allocations || [];
+
+    var onlineChips = online.map(function (n) {
+      return '<span class="pr-stat-chip is-on">' + U.esc(n) + "</span>";
+    }).join("");
+
+    var playerRows = players.map(function (p) {
+      var acts = perms.canCommand && payload.running
+        ? '<button type="button" class="pr-addons-act" data-pstat="kick" data-pname="' + U.esc(p.name) + '">Kick</button>' +
+          '<button type="button" class="pr-addons-act" data-pstat="ban" data-pname="' + U.esc(p.name) + '">Ban</button>' +
+          '<button type="button" class="pr-addons-act" data-pstat="op" data-pname="' + U.esc(p.name) + '">Op</button>'
+        : "";
+      return '<tr class="pr-addons-row"><td class="pr-addons-row__name">' +
+        (p.online ? '<span class="pr-dot is-on"></span> ' : "") + U.esc(p.name) + "</td>" +
+        "<td>" + p.joins + "</td><td>" + p.sessions + "</td>" +
+        '<td class="pr-addons-row__acts">' + acts + "</td></tr>";
+    }).join("");
+
+    var feedRows = feed.slice(-30).reverse().map(function (f) {
+      return '<div class="pr-stats-feed__row pr-stats-feed__row--' + U.esc(f.kind) + '">' +
+        '<span class="pr-stats-feed__kind">' + U.esc(f.kind) + "</span>" +
+        '<span class="pr-stats-feed__text">' + U.esc(f.text) + "</span></div>";
+    }).join("");
+
+    var allocRows = allocs.map(function (a) {
+      return '<tr class="pr-addons-row' + (a.primary ? " is-primary" : "") + '"><td>' +
+        U.esc((a.alias || a.ip) + ":" + a.port) + (a.primary ? ' <span class="pr-addons-pill" data-state="on">primary</span>' : "") + "</td>" +
+        '<td><input class="pr-mkt-input pr-alloc-notes" data-nid="' + a.id + '" value="' + U.esc(a.notes) + '" maxlength="256"' +
+        (perms.canUpdateNotes ? "" : " disabled") + "></td>" +
+        '<td class="pr-addons-row__acts">' + (perms.canUpdateNotes ? '<button type="button" class="pr-addons-act" data-nsave="' + a.id + '">Save</button>' : "") + "</td></tr>";
+    }).join("");
+
+    body.innerHTML =
+      '<div class="pr-plugins-panel">' +
+        (payload.running ? "" : '<div class="pr-addons-empty">Server is offline — actions and the online list need it running.</div>') +
+        '<div class="pr-stats-totals">' +
+          '<div class="pr-stats-total"><div class="pr-stats-total__n">' + (online.length) + '</div><div class="pr-stats-total__l">online now</div></div>' +
+          '<div class="pr-stats-total"><div class="pr-stats-total__n">' + (totals.uniquePlayers || 0) + '</div><div class="pr-stats-total__l">unique players</div></div>' +
+          '<div class="pr-stats-total"><div class="pr-stats-total__n">' + (totals.totalJoins || 0) + '</div><div class="pr-stats-total__l">total joins</div></div>' +
+        "</div>" +
+        (onlineChips ? '<div class="pr-stats-online">' + onlineChips + "</div>" : "") +
+        '<div class="pr-section-title">Players</div>' +
+        '<table class="pr-addons-table"><thead><tr><th>Player</th><th>Joins</th><th>Sessions</th><th></th></tr></thead><tbody>' +
+        (playerRows || '<tr><td colspan="4" class="pr-addons-empty">No joins recorded yet.</td></tr>') + "</tbody></table>" +
+        '<div class="pr-section-title">Activity feed</div>' +
+        '<div class="pr-stats-feed">' + (feedRows || '<div class="pr-addons-empty">No activity yet.</div>') + "</div>" +
+        '<div class="pr-section-title">Allocations</div>' +
+        '<table class="pr-addons-table"><thead><tr><th>Address</th><th>Notes</th><th></th></tr></thead><tbody>' +
+        (allocRows || '<tr><td colspan="3" class="pr-addons-empty">No allocations.</td></tr>') + "</tbody></table>" +
+      "</div>";
+
+    if (!body.getAttribute("data-pr-pstats-bound")) {
+      body.setAttribute("data-pr-pstats-bound", "1");
+      body.addEventListener("click", function (e) {
+        var b = e.target.closest("[data-pstat]");
+        if (b) {
+          P.api("player-stats/command", { method: "POST", json: { server: serverId(), action: b.dataset.pstat, name: b.dataset.pname } })
+            .then(function () { P.toast("Command sent", U.esc(b.dataset.pstat + " " + b.dataset.pname), "success"); })
+            .catch(function (err) { P.toast("Command failed", U.esc(err.message || "unknown"), "error"); });
+          return;
+        }
+        var s = e.target.closest("[data-nsave]");
+        if (s) {
+          var input = body.querySelector('.pr-alloc-notes[data-nid="' + s.dataset.nsave + '"]');
+          P.api("player-stats/notes", { method: "POST", json: { server: serverId(), id: Number(s.dataset.nsave), notes: (input || {}).value || "" } })
+            .then(function () { P.toast("Notes saved", "", "success"); })
+            .catch(function (err) { P.toast("Save failed", U.esc(err.message || "unknown"), "error"); });
+        }
+      });
+    }
+  }
+
+  /* ── versions panel ──────────────────────────────────────────── */
+  function openVersions() { panelLoad("versions", "addons/versions", renderVersions); }
+
+  function renderVersions(body, payload) {
+    var perms = (payload && payload.perms) || {};
+    var rows = ((payload && payload.jars) || []).map(function (j) {
+      var active = j.name === payload.currentJar;
+      return '<tr><td class="pr-addons-row__name">' + U.esc(j.name) + "</td><td>" + fmtBytes(j.size) + "</td>" +
+        "<td>" + (active ? '<span class="pr-worlds-badge" data-active="true">Active</span>' : "") + "</td>" +
+        '<td>' + (perms.canUpdate && payload.jarEditable && !active
+          ? '<button type="button" class="pr-addons-act" data-vjar="' + U.esc(j.name) + '">Use</button>' : "") + "</td></tr>";
+    }).join("");
+    var images = ((payload && payload.images) || []).map(function (im) {
+      var on = im.image === payload.image;
+      return '<tr><td>' + U.esc(im.label) + "</td><td class=\"pr-addons-row__name\">" + U.esc(im.image) + "</td>" +
+        "<td>" + (on ? '<span class="pr-worlds-badge" data-active="true">Active</span>' : "") + "</td>" +
+        "<td>" + (perms.canDocker && !payload.imageLocked && !on
+          ? '<button type="button" class="pr-addons-act" data-vimg="' + U.esc(im.image) + '">Use</button>' : "") + "</td></tr>";
+    }).join("");
+    body.innerHTML =
+      '<div class="pr-plugins-panel"><div class="pr-section-title">Server jars</div>' +
+      '<table class="pr-addons-table"><thead><tr><th>Jar</th><th>Size</th><th></th><th></th></tr></thead><tbody>' +
+      (rows || '<tr><td colspan="4" class="pr-addons-empty">No jars on the server root.</td></tr>') + "</tbody></table>" +
+      '<div class="pr-section-title">Docker image</div>' +
+      '<table class="pr-addons-table"><thead><tr><th>Label</th><th>Image</th><th></th><th></th></tr></thead><tbody>' +
+      (images || '<tr><td colspan="4" class="pr-addons-empty">No images on this egg.</td></tr>') + "</tbody></table>" +
+      '<div class="pr-plugins-panel__hint">Changes apply on the next restart.</div></div>';
+    if (!body.getAttribute("data-pr-versions-bound")) {
+    body.setAttribute("data-pr-versions-bound", "1");
+    body.addEventListener("click", function (e) {
+      var j = e.target.closest("[data-vjar]");
+      if (j) {
+        P.api("addons/versions/jar", { method: "POST", json: { server: serverId(), name: j.dataset.vjar } })
+          .then(function () { P.toast("Jar selected", "Restart to load " + U.esc(j.dataset.vjar), "success"); openVersions(); })
+          .catch(function (err) { P.toast("Switch failed", U.esc(err.message || "unknown"), "error"); });
+        return;
+      }
+      var im = e.target.closest("[data-vimg]");
+      if (im) {
+        P.api("addons/versions/image", { method: "POST", json: { server: serverId(), image: im.dataset.vimg } })
+          .then(function () { P.toast("Image selected", "Restart to apply", "success"); openVersions(); })
+          .catch(function (err) { P.toast("Switch failed", U.esc(err.message || "unknown"), "error"); });
+      }
+    });
+    }
+  }
+
+  /* ── icons panel ─────────────────────────────────────────────── */
+  function openIcons() { panelLoad("icons", "addons/icons", renderIcons); }
+
+  function renderIcons(body, payload) {
+    if (!payload.java) { javaEmpty(body, "Icon Manager is for Java Minecraft servers."); return; }
+    var perms = payload.perms || {};
+    var img = payload.exists && payload.preview
+      ? '<img class="pr-icon-preview" alt="server icon" src="' + payload.preview + '">'
+      : '<div class="pr-addons-empty">No server-icon.png yet.</div>';
+    body.innerHTML =
+      '<div class="pr-plugins-panel"><div class="pr-plugins-panel__hint">Minecraft server list icon (PNG, max 128 KiB)</div>' +
+      '<div class="pr-icon-wrap">' + img + "</div>" +
+      (perms.canCreate || perms.canUpdate
+        ? '<div class="pr-addons-upload"><input type="file" accept="image/png" class="pr-icon-file" hidden>' +
+          '<button type="button" class="pr-addons-upload__btn">Upload PNG</button></div>' : "") +
+      (perms.canDelete && payload.exists
+        ? '<button type="button" class="pr-addons-act pr-addons-act--danger" data-idel="1">Remove icon</button>' : "") +
+      "</div>";
+    var file = body.querySelector(".pr-icon-file");
+    var btn = body.querySelector(".pr-addons-upload__btn");
+    if (btn && file) {
+      btn.addEventListener("click", function () { file.click(); });
+      file.addEventListener("change", function () {
+        if (!file.files || !file.files[0]) return;
+        var f = file.files[0];
+        if (f.size > 128 * 1024) { P.toast("Upload rejected", "Icon exceeds 128 KiB.", "error"); return; }
+        var reader = new FileReader();
+        reader.onload = function () {
+          P.api("addons/icons/upload", { method: "POST", json: { server: serverId(), content: String(reader.result).split(",")[1] || "" } })
+            .then(function () { P.toast("Icon uploaded", "server-icon.png", "success"); openIcons(); })
+            .catch(function (err) { P.toast("Upload failed", U.esc(err.message || "unknown"), "error"); });
+        };
+        reader.readAsDataURL(f);
+      });
+    }
+    var del = body.querySelector("[data-idel]");
+    if (del) del.addEventListener("click", function () {
+      P.api("addons/icons/delete", { method: "POST", json: { server: serverId() } })
+        .then(function () { P.toast("Icon removed", "", "success"); openIcons(); })
+        .catch(function (err) { P.toast("Delete failed", U.esc(err.message || "unknown"), "error"); });
+    });
+  }
+
+  /* ── properties panel ────────────────────────────────────────── */
+  function openProperties() { panelLoad("properties", "addons/properties", renderProperties); }
+
+  function renderProperties(body, payload) {
+    if (!payload.java) { javaEmpty(body, "Properties Manager is for Java Minecraft servers."); return; }
+    var can = !!(payload.perms && payload.perms.canUpdate);
+    var rows = ((payload && payload.keys) || []).map(function (k) {
+      var ctrl;
+      if (k.choices) {
+        ctrl = '<select class="pr-prop-input" data-pkey="' + U.esc(k.key) + '"' + (can ? "" : " disabled") + ">" +
+          k.choices.map(function (c) {
+            return '<option value="' + U.esc(c) + '"' + (c === k.value ? " selected" : "") + ">" + U.esc(c) + "</option>";
+          }).join("") + "</select>";
+      } else {
+        ctrl = '<input class="pr-prop-input" data-pkey="' + U.esc(k.key) + '" value="' + U.esc(k.value) + '"' + (can ? "" : " disabled") + ">";
+      }
+      return '<tr><td class="pr-addons-row__name">' + U.esc(k.key) + "</td><td>" + ctrl + "</td></tr>";
+    }).join("");
+    body.innerHTML =
+      '<div class="pr-plugins-panel"><div class="pr-plugins-panel__hint">Safe server.properties keys. Ports and secrets stay in the Files tab.</div>' +
+      '<table class="pr-addons-table"><thead><tr><th>Key</th><th>Value</th></tr></thead><tbody>' + rows + "</tbody></table>" +
+      (can ? '<button type="button" class="pr-addons-act" data-psave="1">Save changed</button>' : "") +
+      "</div>";
+    var orig = {};
+    (payload.keys || []).forEach(function (k) { orig[k.key] = k.value; });
+    var save = body.querySelector("[data-psave]");
+    if (save) save.addEventListener("click", function () {
+      var chain = Promise.resolve();
+      var n = 0;
+      body.querySelectorAll(".pr-prop-input").forEach(function (el) {
+        var key = el.dataset.pkey;
+        var val = el.value;
+        if (val === orig[key]) return;
+        n += 1;
+        chain = chain.then(function () {
+          return P.api("addons/properties/save", { method: "POST", json: { server: serverId(), key: key, value: val } });
+        });
+      });
+      if (!n) { P.toast("Nothing to save", "", "info"); return; }
+      chain.then(function () { P.toast("Properties saved", "Restart to apply", "success"); openProperties(); })
+        .catch(function (err) { P.toast("Save failed", U.esc(err.message || "unknown"), "error"); });
+    });
+  }
+
   function renderPlugins() {
     var body = mask.querySelector(".pr-addons-body");
-    var jars = (pluginsState && pluginsState.jars) || [];
+    var jars = ((pluginsState && pluginsState.jars) || []).filter(function (j) { return j.dir !== "mods"; });
     var perms = (pluginsState && pluginsState.perms) || {};
+    var detect = (pluginsState && pluginsState.detect) || {};
+    var tab = pluginsTab;
 
     var rows = jars.map(function (j) {
       var toggleBtn = perms.canUpdate
@@ -509,7 +853,6 @@
         : "";
       return '<tr class="pr-addons-row" data-name="' + U.esc(j.name) + '">' +
         '<td class="pr-addons-row__name">' + U.esc(j.name) + "</td>" +
-        '<td>' + (j.dir === "mods" ? "mods" : "plugins") + "</td>" +
         '<td class="pr-addons-row__size">' + fmtBytes(j.size) + "</td>" +
         '<td><span class="pr-addons-pill" data-state="' + (j.enabled ? "on" : "off") + '">' + (j.enabled ? "enabled" : "disabled") + "</span></td>" +
         '<td class="pr-addons-row__acts">' + toggleBtn + deleteBtn + "</td>" +
@@ -526,14 +869,35 @@
 
     body.innerHTML =
       '<div class="pr-plugins-panel">' +
-        '<div class="pr-plugins-panel__head">' +
-          '<span class="pr-plugins-panel__hint">Plugin &amp; mod jars in plugins/ and mods/</span>' +
-          (perms.canCreate ? '<button class="pr-plugins-mkt" type="button">Install from marketplace</button>' : "") +
+        '<div class="pr-panel-tabs" role="tablist">' +
+          '<button type="button" class="pr-panel-tab' + (tab !== "search" ? " is-active" : "") + '" data-ptab="installed">Installed (' + jars.length + ")</button>" +
+          '<button type="button" class="pr-panel-tab' + (tab === "search" ? " is-active" : "") + '" data-ptab="search">Search &amp; Install</button>' +
         "</div>" +
-        '<table class="pr-addons-table"><thead><tr><th>Plugin</th><th>Folder</th><th>Size</th><th>State</th><th></th></tr></thead>' +
-        "<tbody>" + (rows || '<tr><td colspan="5" class="pr-addons-empty">No plugin jars found.</td></tr>') + "</tbody></table>" +
-        upload +
+        '<div class="pr-panel-pane"' + (tab === "search" ? " hidden" : "") + ">" +
+          '<div class="pr-plugins-panel__head"><span class="pr-plugins-panel__hint">Plugin jars in plugins/</span></div>' +
+          '<table class="pr-addons-table"><thead><tr><th>Plugin</th><th>Size</th><th>State</th><th></th></tr></thead>' +
+          "<tbody>" + (rows || '<tr><td colspan="4" class="pr-addons-empty">No plugin jars found.</td></tr>') + "</tbody></table>" +
+          upload +
+        "</div>" +
+        '<div class="pr-panel-pane pr-plugins-search"' + (tab === "search" ? "" : " hidden") + "></div>" +
       "</div>";
+
+    if (tab === "search") {
+      searchUI(body.querySelector(".pr-plugins-search"), {
+        type: "plugin",
+        endpoint: "addons/plugins/search",
+        detect: detect,
+        perms: perms,
+        onInstalled: function () { openPanel("plugins"); },
+      });
+    }
+
+    body.querySelectorAll(".pr-panel-tab").forEach(function (t) {
+      t.addEventListener("click", function () {
+        pluginsTab = t.dataset.ptab === "search" ? "search" : "installed";
+        renderPlugins();
+      });
+    });
 
     bindPluginEvents(body);
   }
@@ -549,8 +913,6 @@
         if (d) { pluginDeletePrompt(d.dataset.delete, d.dataset.dir); return; }
         var up = e.target.closest(".pr-addons-upload__btn");
         if (up) { body.querySelector(".pr-addons-file").click(); return; }
-        var mkt = e.target.closest(".pr-plugins-mkt");
-        if (mkt) { openMarketplace(); return; }
       });
     }
 

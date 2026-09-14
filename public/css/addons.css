@@ -351,3 +351,105 @@
 
 .pr-worlds-dims { display: inline-flex; gap: 6px; flex-wrap: wrap; }
 .pr-worlds-dim { font-size: 0.68rem; padding: 1px 7px; border-radius: 4px; background: var(--pr-border); opacity: 0.75; }
+
+.pr-form-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0 14px; }
+.pr-chip-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--pr-border); font-size: 0.85rem; }
+.pr-section-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.6; margin: 16px 0 8px; font-weight: 600; }
+.pr-notes-input, .pr-prop-input {
+  width: 100%; background: var(--pr-surface-sunken); border: 1px solid var(--pr-border);
+  color: var(--pr-text-primary); border-radius: var(--pr-radius-sm); padding: 6px 8px; font-size: 0.85rem;
+}
+.pr-icon-wrap { margin: 12px 0; }
+.pr-icon-preview { width: 64px; height: 64px; image-rendering: pixelated; border-radius: 8px; border: 1px solid var(--pr-border); }
+
+/* ── panel tabs (Installed / Search) ──────────────────────────── */
+.pr-panel-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.pr-panel-tab {
+  background: none;
+  border: 1px solid var(--pr-border, #3a3f47);
+  color: var(--pr-text, #e6e8ec);
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 550;
+  cursor: pointer;
+}
+.pr-panel-tab:hover { border-color: var(--pr-accent, #f59e0b); }
+.pr-panel-tab.is-active {
+  border-color: var(--pr-accent, #f59e0b);
+  color: var(--pr-accent, #f59e0b);
+}
+
+/* ── search row ───────────────────────────────────────────────── */
+.pr-mkt-row { display: flex; gap: 8px; }
+.pr-mkt-row .pr-mkt-input { flex: 1; }
+.pr-mkt-row .pr-mkt-version { max-width: 130px; }
+.pr-mkt-chip-btn {
+  text-transform: capitalize;
+}
+
+/* ── player stats panel ───────────────────────────────────────── */
+.pr-stats-totals {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.pr-stats-total {
+  border: 1px solid var(--pr-border, #262a31);
+  border-radius: 10px;
+  padding: 12px 10px;
+  text-align: center;
+  background: var(--pr-surface-2, #1b1e23);
+}
+.pr-stats-total__n { font-size: 22px; font-weight: 650; color: var(--pr-accent, #f59e0b); }
+.pr-stats-total__l { font-size: 11px; opacity: 0.65; margin-top: 2px; }
+
+.pr-stats-online { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.pr-stat-chip {
+  border: 1px solid var(--pr-border, #3a3f47);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+}
+.pr-stat-chip.is-on { border-color: var(--pr-success, #46a758); color: var(--pr-success, #46a758); }
+
+.pr-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 4px; }
+.pr-dot.is-on { background: var(--pr-success, #46a758); }
+
+.pr-stats-feed {
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--pr-border, #262a31);
+  border-radius: 10px;
+  padding: 8px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pr-stats-feed__row {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  padding: 3px 6px;
+  border-left: 2px solid var(--pr-border, #3a3f47);
+}
+.pr-stats-feed__row--join { border-left-color: var(--pr-success, #46a758); }
+.pr-stats-feed__row--leave { border-left-color: var(--pr-warning, #f5a623); }
+.pr-stats-feed__row--chat { border-left-color: var(--pr-accent, #f59e0b); }
+.pr-stats-feed__row--death { border-left-color: #e5484d; }
+.pr-stats-feed__kind {
+  flex: none;
+  text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.6;
+  min-width: 44px;
+  padding-top: 1px;
+}
+.pr-stats-feed__text { word-break: break-word; opacity: 0.85; }
