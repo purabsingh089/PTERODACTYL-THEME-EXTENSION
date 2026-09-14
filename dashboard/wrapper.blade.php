@@ -42,4 +42,6 @@
 <script src="{webroot/public}/js/command-palette.js?v=1788700901{timestamp}" defer></script>
 <script src="{webroot/public}/js/shortcuts.js?v=1788700901{timestamp}" defer></script>
 <script src="{webroot/public}/js/motd.js?v=1788700901{timestamp}" defer></script>
-<script src="{webroot/public}/js/addons.js?v=1788700901{timestamp}" defer></script>
+<script src="{webroot/public}/js/addons.js?v=1789100007{timestamp}" defer></script>
+<script src="{webroot/public}/js/file-trash.js?v=1789100003{timestamp}" defer></script>
+<link rel="stylesheet" href="{webroot/public}/css/file-trash.css?v=1789100003{timestamp}">
