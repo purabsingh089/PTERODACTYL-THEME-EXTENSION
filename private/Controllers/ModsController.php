@@ -89,8 +89,17 @@ class ModsController extends Controller
             $provider = 'modrinth';
         }
 
+        $loader = mb_substr(trim((string) $request->input('loader', '')), 0, 16);
+        if (!in_array($loader, ['fabric', 'quilt', 'neoforge', 'forge', ''], true)) {
+            $loader = '';
+        }
+        $version = mb_substr(trim((string) $request->input('version', '')), 0, 12);
+        if (preg_match('/^[0-9]+(\.[0-9]+){0,2}$/', $version) !== 1) {
+            $version = '';
+        }
+
         try {
-            $res = MarketplaceClient::search($q, $provider, 'mod');
+            $res = MarketplaceClient::search($q, $provider, 'mod', $loader, $version);
         } catch (\Throwable $e) {
             return response()->json(['error' => $e->getMessage() ?: 'Search failed.'], 502);
         }
@@ -140,7 +149,7 @@ class ModsController extends Controller
         $version = '';
         if (preg_match('/\b(1\.\d{1,2}(?:\.\d{1,2})?)\b/', $hay, $m)) {
             $version = $m[1];
-        } elseif (preg_match('/\bmc(\d{2,3}(?:\.\d{1,2})?)\b/i', $hay, $m)) {
+        } elseif (preg_match('/\bmc-?(\d{1,3}(?:\.\d{1,2})?)/i', $hay, $m)) {
             $version = $m[1];
         }
 

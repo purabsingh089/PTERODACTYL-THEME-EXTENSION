@@ -29,7 +29,7 @@ class MarketplaceClient
     private const ALLOWED_HOSTS = ['cdn.modrinth.com', 'edge.forgecdn.net', 'mediafilez.forgecdn.net'];
     private const UA = 'PrimusPanel/1.0 (Pterodactyl extension marketplace addon)';
 
-    public static function search(string $q, string $provider, string $type): array
+    public static function search(string $q, string $provider, string $type, string $loader = '', string $version = ''): array
     {
         self::assertType($type);
 
@@ -42,7 +42,7 @@ class MarketplaceClient
             $firstError = null;
             foreach (['modrinth', 'curseforge'] as $p) {
                 try {
-                    $buckets[$p] = array_slice(self::searchOne($q, $p, $type), 0, 10);
+                    $buckets[$p] = array_slice(self::searchOne($q, $p, $type, $loader, $version), 0, 10);
                 } catch (\Throwable $e) {
                     $buckets[$p] = [];
                     $firstError = $firstError ?? $e;
@@ -67,15 +67,31 @@ class MarketplaceClient
 
         self::assertProvider($provider);
 
-        return ['results' => self::searchOne($q, $provider, $type)];
+        $res = self::searchOne($q, $provider, $type, $loader, $version);
+
+        /* The version facet can zero out results when the detected
+         * version string does not exist upstream (custom jars). Retry
+         * without it rather than showing an empty grid. */
+        if ($version !== '' && $res === []) {
+            $res = self::searchOne($q, $provider, $type, $loader, '');
+        }
+
+        return ['results' => $res];
     }
 
-    private static function searchOne(string $q, string $provider, string $type): array
+    private static function searchOne(string $q, string $provider, string $type, string $loader = '', string $version = ''): array
     {
-        return self::cached('s.' . $provider . '.' . $type . '.' . md5($q), function () use ($q, $provider, $type) {
+        return self::cached('s.' . $provider . '.' . $type . '.' . md5($q . '|' . $loader . '|' . $version), function () use ($q, $provider, $type, $loader, $version) {
             $results = [];
             if ($provider === 'modrinth') {
-                $facet = urlencode(json_encode([["project_type:$type"]]));
+                $facetParts = [["project_type:$type"]];
+                if ($loader !== '') {
+                    $facetParts[] = ["categories:$loader"];
+                }
+                if ($version !== '') {
+                    $facetParts[] = ["versions:$version"];
+                }
+                $facet = urlencode(json_encode($facetParts));
                 $json = self::mrGet('/search?query=' . urlencode($q) . "&facets=$facet&limit=20");
                 foreach ($json['hits'] ?? [] as $h) {
                     $results[] = [

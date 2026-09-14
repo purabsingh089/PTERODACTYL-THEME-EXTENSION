@@ -1015,6 +1015,16 @@
     return (i === 0 ? Math.round(b) : b.toFixed(1)) + " " + u[i];
   }
 
+  function fmtDownloads(n) {
+    n = Number(n) || 0;
+    return n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e3 ? (n / 1e3).toFixed(1) + "k" : String(n);
+  }
+
+  function fmtDate(s) {
+    var d = new Date(s);
+    return isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10);
+  }
+
   function escHandler(e) { if (e.key === "Escape") close(); }
 
   function close() {
