@@ -24,11 +24,8 @@ use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\ModsContr
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\PlayerStatsController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\VersionsController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\IconsController;
-use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\TrashController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\TrashApiController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\PropertiesController;
-use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\MotdAddonController;
-use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\AiMotdController;
 
 // Public runtime configuration consumed by the client bundle.
 // No secrets here — see SettingsController::public().
