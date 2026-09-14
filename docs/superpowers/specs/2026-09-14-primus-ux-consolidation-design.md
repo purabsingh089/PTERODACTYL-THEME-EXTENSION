@@ -31,7 +31,7 @@ The 13-card Addons hub has redundancy and misplacement:
    (Modrinth/CurseForge) with auto-detected modloader/MC-version filters,
    user-overridable.
 5. Single MOTD UI: subnav tab gains the AI-generate button; hub cards retire.
-6. Hub shrinks 13 → 9 cards; retired controllers/routes removed.
+6. Hub shrinks 13 → 7 cards; retired controllers/routes removed.
 
 ## Non-Goals
 
@@ -43,25 +43,21 @@ The 13-card Addons hub has redundancy and misplacement:
 
 ## Architecture
 
-### Hub after redesign (9 cards)
+### Hub after redesign (7 cards)
 
-Plugin Installer, Mod Manager, World Manager, Player Stats,
-Version Manager, Icon Manager, Properties Manager — plus removal of
-Marketplace/MOTD/AI-MOTD/Trash/Advanced-Console/Traffic/Player-Manager
-cards; Player Manager's actions fold into Player Stats.
+Removed (6): Marketplace, MOTD Manager, AI MOTD, Trash Bin, Advanced
+Console, Traffic Manager. Merged (1): Player Manager actions fold into
+Player Stats. Remaining cards:
 
 | Card | Perms | Source |
 |---|---|---|
 | Plugin Installer | file.read | PluginsController + search |
 | Mod Manager | file.read | ModsController + search |
 | World Manager | file.read | unchanged |
-| Player Stats | control.console + allocation.read | new PlayerStatsController |
+| Player Stats | control.console + allocation.read | new PlayerStatsController (absorbs Players/Traffic) |
 | Version Manager | startup.read | unchanged |
 | Icon Manager | file.read | unchanged |
 | Properties Manager | file.read | unchanged |
-
-(7 additive cards listed; total hub = 9 including the two managers already
-counted above.)
 
 ### Trash system
 
