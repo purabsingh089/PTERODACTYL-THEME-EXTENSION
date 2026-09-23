@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Primus">
   <defs>
     <linearGradient id="p" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#8577ff"/>
-      <stop offset="1" stop-color="#6d5df6"/>
+      <stop offset="0" stop-color="#1e6fe0"/>
+      <stop offset="1" stop-color="#0050b8"/>
     </linearGradient>
     <linearGradient id="s" x1="0" y1="0" x2="0" y2="64" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#ffffff" stop-opacity="0.9"/>
-      <stop offset="1" stop-color="#dcd6ff" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#d6e8ff" stop-opacity="0.9"/>
     </linearGradient>
   </defs>
   <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#p)"/>

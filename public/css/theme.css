@@ -41,7 +41,7 @@
 :where(*::-webkit-scrollbar-track) { background: transparent; }
 
 /* selection */
-:where(::selection) { background: var(--pr-accent-weak); color: var(--pr-accent); }
+:where(::selection) { background: var(--pr-accent-weak); color: var(--pr-accent-text); }
 
 /* ── typography ───────────────────────────────────────────────────────── */
 :where(h1), :where(h2), :where(h3) {
@@ -104,7 +104,7 @@
 }
 
 /* ── inputs ───────────────────────────────────────────────────────────── */
-:where(input, select, textarea) {
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
   background: var(--pr-surface-sunken) !important;
   border: var(--pr-border-width) solid var(--pr-border) !important;
   border-radius: var(--pr-radius-md) !important;
@@ -112,9 +112,19 @@
   transition: border-color var(--pr-dur-1) var(--pr-ease),
     box-shadow var(--pr-dur-1) var(--pr-ease);
 }
-:where(input:focus, select:focus, textarea:focus) {
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus, select:focus, textarea:focus) {
   border-color: var(--pr-accent) !important;
   box-shadow: 0 0 0 3px var(--pr-accent-weak) !important;
+}
+:where(input[type="checkbox"], input[type="radio"]) {
+  background: transparent !important;
+  border: 1px solid var(--pr-border-strong) !important;
+  box-shadow: none !important;
+  accent-color: var(--pr-accent);
+}
+:where(input[type="checkbox"]:focus, input[type="radio"]:focus) {
+  box-shadow: 0 0 0 3px var(--pr-accent-weak) !important;
+  border-color: var(--pr-accent) !important;
 }
 :where(label) { color: var(--pr-text-secondary); font-weight: var(--pr-font-weight-medium); }
 
@@ -176,10 +186,8 @@
     color var(--pr-dur-1) var(--pr-ease);
 }
 :where(a[class*="Navlink"]:hover) { background: var(--pr-surface-sunken); color: var(--pr-text-primary); }
-:where(a[class*="NavlinkActive"], a[aria-current="page"]) {
-  color: var(--pr-accent) !important;
-}
-:where(a[class*="NavlinkActive"], a[aria-current="page"]) {
+:where(a[class*="NavlinkActive"], a[aria-current="page"]):not([href*="#"]) {
+  color: var(--pr-accent-text) !important;
   background: var(--pr-accent-weak) !important;
 }
 
@@ -229,12 +237,67 @@
 }
 :where(div[class*="Dropdown"] a:hover, div[class*="Dropdown"] button:hover) { background: var(--pr-surface-sunken) !important; }
 
-/* ── file manager rows ────────────────────────────────────────────────── */
+/* ── file manager rows ──────────────────────────────────────────────────
+   style.module.css hashes .file_row / .details, so utility overrides miss.
+   React Router also marks every file NavLink .active (pathname match). */
+#app div[class*="style-module_"]:has(> a[href*="/files"]) {
+  background: var(--pr-surface-2) !important;
+  border: 1px solid var(--pr-border) !important;
+  border-radius: var(--pr-radius-md) !important;
+  margin-bottom: 4px !important;
+  color: var(--pr-text-primary) !important;
+  box-shadow: none !important;
+  transition: background-color var(--pr-dur-1) var(--pr-ease),
+    border-color var(--pr-dur-1) var(--pr-ease);
+}
+#app div[class*="style-module_"]:has(> a[href*="/files"]):hover {
+  background: var(--pr-surface-raised) !important;
+  border-color: var(--pr-border-strong) !important;
+}
+#app a[class*="style-module_"][href*="/files"],
+#app a[class*="style-module_"][href*="/files"].active,
+#app a[class*="style-module_"][href*="/files"][aria-current] {
+  background: transparent !important;
+  color: var(--pr-text-primary) !important;
+  box-shadow: none !important;
+}
+#app a[class*="style-module_"][href*="/files"]:hover {
+  color: var(--pr-text-primary) !important;
+  background: transparent !important;
+}
+#app [class*="FileDropdownMenu___StyledDiv"] {
+  background: transparent !important;
+  border-color: var(--pr-border) !important;
+  box-shadow: none !important;
+}
+#app [class*="FileManagerBreadcrumbs"] a.active,
+#app [class*="FileManagerBreadcrumbs"] a[aria-current] {
+  background: transparent !important;
+  color: var(--pr-accent-text) !important;
+  box-shadow: none !important;
+}
 :where(div[class*="FileRow"], tr[class*="file"]) {
   transition: background-color var(--pr-dur-1) var(--pr-ease);
-  border-radius: var(--pr-radius-sm);
+  border-radius: var(--pr-radius-md);
 }
-:where(div[class*="FileRow"]:hover, tr[class*="file"]:hover) { background: var(--pr-surface-sunken); }
+:where(div[class*="FileRow"]:hover, tr[class*="file"]:hover) { background: var(--pr-surface-2); }
+#app [class*="FileManager"] [class*="FileObject"],
+#app [class*="FileRow"] {
+  border-color: var(--pr-border) !important;
+}
+
+/* file-manager CTAs tagged by file-trash.js — never paint console power. */
+#app button.pr-fm-cta {
+  background: var(--pr-surface-raised) !important;
+  border: 1px solid var(--pr-border-strong) !important;
+  color: var(--pr-text-primary) !important;
+  border-radius: var(--pr-radius-md) !important;
+  box-shadow: none !important;
+}
+#app button.pr-fm-cta:hover {
+  border-color: var(--pr-accent) !important;
+  color: var(--pr-accent-text) !important;
+}
 
 /* code editors (files page) */
 :where(.ace_editor, .cm-editor) {
@@ -262,6 +325,13 @@
 #app [class*="bg-neutral-800"], #app [class*="bg-neutral-900"] {
   background-color: var(--pr-surface) !important;
 }
+#app input[type="checkbox"],
+#app input[type="radio"],
+#app .bg-neutral-800[type="checkbox"],
+#app [class*="bg-neutral"][type="checkbox"] {
+  background: transparent !important;
+  background-color: transparent !important;
+}
 #app .bg-neutral-600, #app [class*="bg-neutral-600"] {
   background-color: var(--pr-surface-raised) !important;
 }
@@ -281,7 +351,7 @@
   border-color: var(--pr-border-strong) !important;
 }
 #app a[class*="text-blue-"], #app button[class*="text-blue-"], #app [class*="text-cyan-"] {
-  color: var(--pr-accent) !important;
+  color: var(--pr-accent-text) !important;
 }
 #app [class*="bg-blue-"], #app [class*="bg-cyan-"] {
   background-color: var(--pr-accent) !important;
@@ -289,6 +359,55 @@
 #app [class*="hover:bg-neutral-700"]:hover, #app [class*="hover:bg-neutral-600"]:hover {
   background-color: var(--pr-surface-sunken) !important;
 }
+/* darker neutral steps the stock bundle uses on the dashboard shell */
+#app .bg-black, #app [class*="bg-black"],
+#app [class*="bg-neutral-950"] {
+  background-color: var(--pr-page) !important;
+}
+#app [class*="bg-neutral-700"] {
+  background-color: var(--pr-surface-2) !important;
+}
+/* hashed styled-components (twin.macro) do not keep the utility class name */
+#app [class*="ContentBox___StyledDiv"],
+#app [class*="GreyRowBox"],
+#app [class*="TitledGreyBox___StyledDiv"],
+#app [class*="ServerRow__StatusIndicatorBox"] {
+  background: var(--pr-surface) !important;
+  border: 1px solid var(--pr-border) !important;
+  box-shadow: var(--pr-shadow-1) !important;
+  color: var(--pr-text-primary) !important;
+}
+#app [class*="GreyRowBox"]:hover,
+#app [class*="TitledGreyBox___StyledDiv"]:hover,
+#app [class*="ServerRow__StatusIndicatorBox"]:hover {
+  border-color: var(--pr-border-strong) !important;
+  box-shadow: var(--pr-shadow-2) !important;
+}
+#app [class*="ContentBox___StyledH"] {
+  color: var(--pr-text-primary) !important;
+  font-family: var(--pr-font-display) !important;
+}
+#app [class*="bg-neutral-500"] {
+  background-color: var(--pr-surface-raised) !important;
+}
+#app .text-neutral-500, #app [class*="text-neutral-500"],
+#app [class*="text-neutral-600"] {
+  color: var(--pr-text-faint) !important;
+}
+#app [class*="border-neutral-800"], #app [class*="border-neutral-900"] {
+  border-color: var(--pr-border) !important;
+}
+#app [class*="hover:text-neutral-100"]:hover,
+#app [class*="hover:text-white"]:hover {
+  color: var(--pr-text-primary) !important;
+}
+#app [class*="text-red-400"], #app [class*="text-red-500"] { color: var(--pr-danger) !important; }
+#app [class*="bg-red-500"] { background-color: var(--pr-danger) !important; }
+#app [class*="bg-green-500"] { background-color: var(--pr-success) !important; }
+#app [class*="bg-yellow-500"] { background-color: var(--pr-warning) !important; }
+/* rounded utility frames inherit the token radius */
+#app [class*="rounded-lg"], #app [class*="rounded-xl"] { border-radius: var(--pr-radius-lg) !important; }
+#app [class*="rounded-md"], #app [class*="rounded"] { border-radius: var(--pr-radius-md) !important; }
 #app div[class*="col-span-4"][class*="lg:col-span-3"] {
   background: var(--pr-surface) !important;
   border: var(--pr-border-width) solid var(--pr-border) !important;
@@ -377,6 +496,21 @@ body::before {
 }
 
 /* ── print safety ─────────────────────────────────────────────────────── */
+#app input[type="checkbox"],
+#app input[type="radio"] {
+  appearance: auto;
+  width: 14px !important;
+  height: 14px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 1px solid var(--pr-border-strong) !important;
+  border-radius: 3px !important;
+  box-shadow: none !important;
+  accent-color: var(--pr-accent);
+}
+
 @media print {
   :where(body):before { display: none; }
 }

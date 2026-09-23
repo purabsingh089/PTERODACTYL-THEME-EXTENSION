@@ -1,21 +1,24 @@
 /* ─────────────────────────────────────────────────────────────────────────
    Primus · Design Tokens
    Single source of truth for color, elevation, radius, spacing, typography
-   and motion. Dark theme is the default; light theme activates through
+   and motion. Dark is the default (near-black + electric blue); the light
+   theme is designed separately rather than inverted and activates through
    [data-primus-theme="light"]. Admin overrides land on :root via the
    customizer (admin/wrapper.blade.php / public/js/theme.js).
    ───────────────────────────────────────────────────────────────────────── */
 
 :root {
   /* ── branding (customizer targets) ───────────────────────────────────── */
-  --pr-accent: #6d5df6;
-  --pr-accent-weak: rgba(109, 93, 246, 0.16);
-  --pr-accent-strong: #8577ff;
+  --pr-accent: #0050b8;
+  --pr-accent-strong: #1e6fe0;
+  --pr-accent-text: #58a6ff;
+  --pr-accent-weak: rgba(0, 80, 184, 0.18);
   --pr-accent-contrast: #ffffff;
 
   /* ── typography ─────────────────────────────────────────────────────── */
   --pr-font-ui: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     Roboto, Helvetica, Arial, sans-serif;
+  --pr-font-sans: var(--pr-font-ui);
   --pr-font-display: "Sora", "Inter", ui-sans-serif, system-ui, sans-serif;
   --pr-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
     Consolas, "Liberation Mono", monospace;
@@ -28,8 +31,9 @@
   --pr-text-xl: 1.5rem;
   --pr-font-weight-normal: 450;
   --pr-font-weight-medium: 550;
+  --pr-font-weight-semibold: 600;
   --pr-font-weight-bold: 650;
-  --pr-tracking-tight: -0.01em;
+  --pr-tracking-tight: -0.011em;
 
   /* ── spacing scale (4px / 8px base grid) ────────────────────────────── */
   --pr-space-1: 4px;
@@ -43,27 +47,35 @@
   --pr-space-12: 48px;
   --pr-space-16: 64px;
 
+  /* ── shell geometry ─────────────────────────────────────────────────── */
+  --pr-sidebar-w: 264px;
+  --pr-sidebar-w-collapsed: 76px;
+  --pr-topbar-h: 56px;
+  --pr-container-max: 1680px;
+  --pr-shell-gap: 20px;
+  --pr-power-radius: var(--pr-radius-lg);
+
   /* ── radius scale (admin slider can rescale via --pr-radius-multiplier) ─ */
   --pr-radius-multiplier: 1;
-  --pr-radius-xs: calc(4px * var(--pr-radius-multiplier));
-  --pr-radius-sm: calc(6px * var(--pr-radius-multiplier));
-  --pr-radius-md: calc(10px * var(--pr-radius-multiplier));
-  --pr-radius-lg: calc(14px * var(--pr-radius-multiplier));
-  --pr-radius-xl: calc(20px * var(--pr-radius-multiplier));
+  --pr-radius-xs: calc(5px * var(--pr-radius-multiplier));
+  --pr-radius-sm: calc(8px * var(--pr-radius-multiplier));
+  --pr-radius-md: calc(12px * var(--pr-radius-multiplier));
+  --pr-radius-lg: calc(16px * var(--pr-radius-multiplier));
+  --pr-radius-xl: calc(22px * var(--pr-radius-multiplier));
   --pr-radius-pill: 999px;
 
   /* ── elevation / shadow scale (5 steps) ─────────────────────────────── */
   --pr-shadow-multiplier: 1;
-  --pr-shadow-1: 0 1px 2px rgba(5, 6, 14, calc(0.28 * var(--pr-shadow-multiplier)));
-  --pr-shadow-2: 0 2px 6px rgba(5, 6, 14, calc(0.3 * var(--pr-shadow-multiplier))),
-    0 1px 2px rgba(5, 6, 14, calc(0.24 * var(--pr-shadow-multiplier)));
-  --pr-shadow-3: 0 8px 24px rgba(5, 6, 14, calc(0.32 * var(--pr-shadow-multiplier))),
-    0 2px 6px rgba(5, 6, 14, calc(0.26 * var(--pr-shadow-multiplier)));
-  --pr-shadow-4: 0 16px 44px rgba(5, 6, 14, calc(0.38 * var(--pr-shadow-multiplier))),
-    0 4px 12px rgba(5, 6, 14, calc(0.28 * var(--pr-shadow-multiplier)));
-  --pr-shadow-5: 0 28px 72px rgba(5, 6, 14, calc(0.5 * var(--pr-shadow-multiplier))),
-    0 8px 20px rgba(5, 6, 14, calc(0.32 * var(--pr-shadow-multiplier)));
-  --pr-shadow-accent: 0 4px 18px var(--pr-accent-weak);
+  --pr-shadow-1: 0 1px 2px rgba(0, 0, 0, calc(0.4 * var(--pr-shadow-multiplier)));
+  --pr-shadow-2: 0 2px 8px rgba(0, 0, 0, calc(0.42 * var(--pr-shadow-multiplier))),
+    0 1px 2px rgba(0, 0, 0, calc(0.34 * var(--pr-shadow-multiplier)));
+  --pr-shadow-3: 0 10px 28px rgba(0, 0, 0, calc(0.46 * var(--pr-shadow-multiplier))),
+    0 2px 8px rgba(0, 0, 0, calc(0.36 * var(--pr-shadow-multiplier)));
+  --pr-shadow-4: 0 18px 48px rgba(0, 0, 0, calc(0.52 * var(--pr-shadow-multiplier))),
+    0 4px 14px rgba(0, 0, 0, calc(0.4 * var(--pr-shadow-multiplier)));
+  --pr-shadow-5: 0 32px 80px rgba(0, 0, 0, calc(0.62 * var(--pr-shadow-multiplier))),
+    0 10px 24px rgba(0, 0, 0, calc(0.44 * var(--pr-shadow-multiplier)));
+  --pr-shadow-accent: 0 6px 22px var(--pr-accent-weak);
 
   /* ── motion ──────────────────────────────────────────────────────────── */
   --pr-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
@@ -74,126 +86,154 @@
 
   /* ── component blends ────────────────────────────────────────────────── */
   --pr-border-width: 1px;
+  --pr-card-scale: 1;
 }
 
-/* ═════════════ Dark theme (default) — scales from 50 → 950 ═════════════ */
+/* ═════════════ Dark theme (default) — near-black, electric blue ═════════ */
 :root,
 :root[data-primus-theme="dark"] {
   color-scheme: dark;
 
-  --pr-bg-50: #f8f9fc;
-  --pr-bg-100: #eef0f6;
-  --pr-bg-200: #dde1ec;
-  --pr-bg-300: #c3c9da;
-  --pr-bg-400: #9aa3bd;
-  --pr-bg-500: #6f7896;
-  --pr-bg-600: #4a516c;
-  --pr-bg-700: #2e3350;
-  --pr-bg-800: #1c2039;
-  --pr-bg-900: #12142a;
-  --pr-bg-950: #0a0b1a;
+  /* neutral ramp: 50 lightest → 950 darkest */
+  --pr-bg-50: #f5f7fa;
+  --pr-bg-100: #e7eaf0;
+  --pr-bg-200: #d2d7e0;
+  --pr-bg-300: #aeb5c2;
+  --pr-bg-400: #8a92a2;
+  --pr-bg-500: #666e7e;
+  --pr-bg-600: #474e5c;
+  --pr-bg-700: #2e343f;
+  --pr-bg-800: #1a1e26;
+  --pr-bg-900: #10131a;
+  --pr-bg-950: #06070a;
 
-  --pr-surface: var(--pr-bg-900);
-  --pr-surface-raised: var(--pr-bg-800);
-  --pr-surface-sunken: var(--pr-bg-950);
-  --pr-surface-header: rgba(13, 15, 32, 0.82);
+  --pr-surface: #0b0d12;
+  --pr-surface-2: #0e1117;
+  --pr-surface-raised: #12151c;
+  --pr-surface-sunken: #040507;
+  --pr-surface-header: rgba(7, 8, 12, 0.82);
   --pr-page: var(--pr-bg-950);
   --pr-page-gradient:
-    radial-gradient(1200px 500px at 85% -10%, var(--pr-accent-weak), transparent 60%),
-    radial-gradient(900px 420px at -10% 0%, rgba(56, 116, 203, 0.08), transparent 55%);
+    radial-gradient(1100px 520px at 88% -12%, var(--pr-accent-weak), transparent 62%),
+    radial-gradient(820px 420px at -12% 2%, rgba(30, 111, 224, 0.08), transparent 58%);
 
-  --pr-border: rgba(160, 170, 213, 0.12);
-  --pr-border-strong: rgba(160, 170, 213, 0.22);
+  --pr-border: rgba(255, 255, 255, 0.07);
+  --pr-border-weak: rgba(255, 255, 255, 0.045);
+  --pr-border-strong: rgba(255, 255, 255, 0.13);
 
-  --pr-text-primary: #edeff7;
-  --pr-text-secondary: #aab0c8;
-  --pr-text-muted: #737a99;
-  --pr-text-faint: #565c7a;
-  --pr-text-inverse: #0b0d1d;
+  --pr-text: #f2f4f8;
+  --pr-text-primary: #f2f4f8;
+  --pr-text-secondary: #a7aebd;
+  --pr-text-muted: #6c7382;
+  --pr-text-faint: #4a505c;
+  --pr-text-inverse: #0a0c10;
 
   /* semantic states */
-  --pr-success: #3ecf8e;
-  --pr-success-weak: rgba(62, 207, 142, 0.14);
-  --pr-warning: #f5b644;
-  --pr-warning-weak: rgba(245, 182, 68, 0.14);
-  --pr-danger: #f45f6f;
-  --pr-danger-weak: rgba(244, 95, 111, 0.14);
+  --pr-success: #34d399;
+  --pr-success-weak: rgba(52, 211, 153, 0.14);
+  --pr-warning: #f5a524;
+  --pr-warning-weak: rgba(245, 165, 36, 0.14);
+  --pr-danger: #f4546a;
+  --pr-danger-weak: rgba(244, 84, 106, 0.14);
   --pr-info: #4ea1ef;
   --pr-info-weak: rgba(78, 161, 239, 0.14);
 
-  --pr-terminal-bg: #07081a;
-  --pr-terminal-border: rgba(160, 170, 213, 0.1);
+  --pr-terminal-bg: #04060c;
+  --pr-terminal-border: rgba(255, 255, 255, 0.06);
 
-  --pr-scrollbar-thumb: rgba(160, 170, 213, 0.2);
-  --pr-scrollbar-thumb-hover: rgba(160, 170, 213, 0.34);
+  --pr-scrollbar-thumb: rgba(255, 255, 255, 0.14);
+  --pr-scrollbar-thumb-hover: rgba(255, 255, 255, 0.26);
 
   /* skeleton shimmer pairs */
-  --pr-skeleton-base: rgba(160, 170, 213, 0.08);
-  --pr-skeleton-sheen: rgba(160, 170, 213, 0.16);
+  --pr-skeleton-base: rgba(255, 255, 255, 0.05);
+  --pr-skeleton-sheen: rgba(255, 255, 255, 0.11);
+
+  --pr-auth-card-bg: var(--pr-surface);
+  --pr-auth-submit: var(--pr-accent);
 }
 
-/* ═════════════ Light theme ═════════════ */
+/* ═════════════ Light theme — designed independently ═════════════ */
 :root[data-primus-theme="light"] {
   color-scheme: light;
 
-  --pr-bg-50: #fbfcfe;
-  --pr-bg-100: #f4f6fb;
-  --pr-bg-200: #e8ebf4;
-  --pr-bg-300: #d5dae8;
-  --pr-bg-400: #b3bacf;
-  --pr-bg-500: #8b93ae;
-  --pr-bg-600: #626a85;
-  --pr-bg-700: #464d66;
-  --pr-bg-800: #2d3248;
-  --pr-bg-900: #181b2b;
-  --pr-bg-950: #0d0f1c;
+  --pr-bg-50: #fbfcfd;
+  --pr-bg-100: #f4f6f9;
+  --pr-bg-200: #e8ebf1;
+  --pr-bg-300: #d3d8e2;
+  --pr-bg-400: #aeb6c4;
+  --pr-bg-500: #848d9e;
+  --pr-bg-600: #5d6675;
+  --pr-bg-700: #414958;
+  --pr-bg-800: #262c37;
+  --pr-bg-900: #141922;
+  --pr-bg-950: #0b0e14;
 
   --pr-surface: #ffffff;
+  --pr-surface-2: #f7f8fa;
   --pr-surface-raised: #ffffff;
-  --pr-surface-sunken: var(--pr-bg-100);
+  --pr-surface-sunken: #eff1f5;
   --pr-surface-header: rgba(255, 255, 255, 0.86);
-  --pr-page: var(--pr-bg-100);
+  --pr-page: #f6f7f9;
   --pr-page-gradient:
-    radial-gradient(1100px 480px at 85% -12%, var(--pr-accent-weak), transparent 60%),
-    radial-gradient(800px 400px at -8% 0%, rgba(56, 116, 203, 0.06), transparent 55%);
+    radial-gradient(1000px 480px at 88% -14%, rgba(0, 80, 184, 0.07), transparent 62%),
+    radial-gradient(760px 400px at -10% 0%, rgba(30, 111, 224, 0.05), transparent 58%);
 
-  --pr-border: rgba(30, 38, 70, 0.09);
-  --pr-border-strong: rgba(30, 38, 70, 0.18);
+  --pr-accent: #0050b8;
+  --pr-accent-strong: #1e6fe0;
+  --pr-accent-text: #0050b8;
+  --pr-accent-weak: rgba(0, 80, 184, 0.1);
+  --pr-accent-contrast: #ffffff;
 
-  --pr-text-primary: #1b1e31;
-  --pr-text-secondary: #4c536c;
-  --pr-text-muted: #767d97;
-  --pr-text-faint: #9ba1b8;
-  --pr-text-inverse: #f5f6fb;
+  --pr-border: rgba(11, 14, 20, 0.08);
+  --pr-border-weak: rgba(11, 14, 20, 0.05);
+  --pr-border-strong: rgba(11, 14, 20, 0.16);
 
-  --pr-success: #16a06b;
-  --pr-success-weak: rgba(22, 160, 107, 0.12);
-  --pr-warning: #d48a08;
-  --pr-warning-weak: rgba(212, 138, 8, 0.12);
-  --pr-danger: #d94053;
-  --pr-danger-weak: rgba(217, 64, 83, 0.12);
-  --pr-info: #1f7bd0;
-  --pr-info-weak: rgba(31, 123, 208, 0.12);
+  --pr-text: #0c1017;
+  --pr-text-primary: #0c1017;
+  --pr-text-secondary: #454c59;
+  --pr-text-muted: #6b7280;
+  --pr-text-faint: #9aa1ad;
+  --pr-text-inverse: #ffffff;
 
-  --pr-terminal-bg: #10121f;
-  --pr-terminal-border: rgba(30, 38, 70, 0.14);
+  --pr-success: #0e9f6e;
+  --pr-success-weak: rgba(14, 159, 110, 0.11);
+  --pr-warning: #c2780a;
+  --pr-warning-weak: rgba(194, 120, 10, 0.11);
+  --pr-danger: #d93a4f;
+  --pr-danger-weak: rgba(217, 58, 79, 0.11);
+  --pr-info: #1069c9;
+  --pr-info-weak: rgba(16, 105, 201, 0.11);
 
-  --pr-scrollbar-thumb: rgba(30, 38, 70, 0.22);
-  --pr-scrollbar-thumb-hover: rgba(30, 38, 70, 0.38);
+  --pr-terminal-bg: #0b0e14;
+  --pr-terminal-border: rgba(11, 14, 20, 0.16);
 
-  --pr-skeleton-base: rgba(30, 38, 70, 0.07);
-  --pr-skeleton-sheen: rgba(30, 38, 70, 0.13);
+  --pr-scrollbar-thumb: rgba(11, 14, 20, 0.18);
+  --pr-scrollbar-thumb-hover: rgba(11, 14, 20, 0.32);
 
-  --pr-shadow-1: 0 1px 2px rgba(24, 27, 43, 0.06);
-  --pr-shadow-2: 0 2px 6px rgba(24, 27, 43, 0.08), 0 1px 2px rgba(24, 27, 43, 0.05);
-  --pr-shadow-3: 0 8px 24px rgba(24, 27, 43, 0.1), 0 2px 6px rgba(24, 27, 43, 0.06);
-  --pr-shadow-4: 0 16px 44px rgba(24, 27, 43, 0.14), 0 4px 12px rgba(24, 27, 43, 0.07);
-  --pr-shadow-5: 0 28px 72px rgba(24, 27, 43, 0.18), 0 8px 20px rgba(24, 27, 43, 0.09);
+  --pr-skeleton-base: rgba(11, 14, 20, 0.06);
+  --pr-skeleton-sheen: rgba(11, 14, 20, 0.11);
+
+  --pr-auth-card-bg: var(--pr-surface);
+  --pr-auth-submit: var(--pr-accent);
+
+  --pr-shadow-1: 0 1px 2px rgba(11, 14, 20, 0.06);
+  --pr-shadow-2: 0 2px 8px rgba(11, 14, 20, 0.08), 0 1px 2px rgba(11, 14, 20, 0.05);
+  --pr-shadow-3: 0 10px 28px rgba(11, 14, 20, 0.1), 0 2px 8px rgba(11, 14, 20, 0.06);
+  --pr-shadow-4: 0 18px 48px rgba(11, 14, 20, 0.14), 0 4px 14px rgba(11, 14, 20, 0.07);
+  --pr-shadow-5: 0 32px 80px rgba(11, 14, 20, 0.18), 0 10px 24px rgba(11, 14, 20, 0.09);
+  --pr-shadow-accent: 0 6px 22px rgba(0, 80, 184, 0.22);
 }
 
 /* Accent intensity presets used by the customizer "vibrance" slider */
-:root[data-primus-vibrance="subtle"] { --pr-accent-weak: rgba(109, 93, 246, 0.08); }
-:root[data-primus-vibrance="vivid"] { --pr-accent-weak: rgba(109, 93, 246, 0.26); }
+:root[data-primus-vibrance="subtle"] { --pr-accent-weak: rgba(0, 80, 184, 0.09); }
+:root[data-primus-vibrance="vivid"] { --pr-accent-weak: rgba(0, 80, 184, 0.28); }
+
+/* Compact density tightens the shell and card rhythm */
+:root[data-primus-density="compact"] {
+  --pr-shell-gap: 14px;
+  --pr-space-4: 14px;
+  --pr-space-6: 20px;
+}
 
 /* Accessibility: respect reduced motion globally */
 @media (prefers-reduced-motion: reduce) {

@@ -93,8 +93,8 @@
     for (var i = 0; i < buttons.length; i++) {
       var label = (buttons[i].textContent || "").trim().toLowerCase();
       if (label === "upload" || label === "new file" || label === "create directory") {
-        anchor = buttons[i];
-        break;
+        buttons[i].classList.add("pr-fm-cta");
+        if (!anchor) anchor = buttons[i];
       }
     }
     if (!anchor) return;

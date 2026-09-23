@@ -1,0 +1,573 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Primus · Shell
+   Turns the stock React chrome into the Stark-style shell: a fixed left
+   sidebar (or a rethemed sticky top bar), a flush page container, an
+   in-content sub-navigation strip and a pinned power-control rail.
+
+   The stock nodes are never replaced — they are only repositioned and
+   restyled — so navigation, search, tooltips and logout keep their stock
+   behaviour. Everything is keyed off attributes shell.js writes to <html>:
+     data-primus-layout     sidebar | topbar
+     data-primus-sidebar    expanded | collapsed
+     data-primus-drawer     open | closed        (mobile only)
+     data-primus-container  flush | boxed
+     data-primus-power      sidebar | header | floating
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* ══════════════════════════ Shell variables ══════════════════════════ */
+html[data-primus-layout="sidebar"] {
+  --pr-sidebar-current: var(--pr-sidebar-w);
+}
+html[data-primus-layout="sidebar"][data-primus-sidebar="collapsed"] {
+  --pr-sidebar-current: var(--pr-sidebar-w-collapsed);
+}
+@media (min-width: 641px) and (max-width: 1024px) {
+  html[data-primus-layout="sidebar"] {
+    --pr-sidebar-current: var(--pr-sidebar-w-collapsed);
+  }
+}
+
+/* ══════════════════════════ Sidebar layout ══════════════════════════ */
+html[data-primus-layout="sidebar"] #NavigationBar {
+  position: fixed !important;
+  inset: 0 auto 0 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  width: var(--pr-sidebar-current) !important;
+  max-width: var(--pr-sidebar-current) !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  background: var(--pr-surface) !important;
+  border: 0 !important;
+  border-right: 1px solid var(--pr-border) !important;
+  box-shadow: none !important;
+  z-index: 70 !important;
+  transition: width var(--pr-dur-3) var(--pr-ease),
+    max-width var(--pr-dur-3) var(--pr-ease),
+    transform var(--pr-dur-3) var(--pr-ease);
+}
+
+/* Logout spinner overlay (Fade) occupies a sibling slot; collapse it
+   unless it is actually covering the bar (logging out). */
+html[data-primus-layout="sidebar"] #NavigationBar > div[class*="Fade"],
+html[data-primus-layout="sidebar"] #NavigationBar > div[class*="Fade__Container"] {
+  position: absolute !important;
+  inset: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  flex: 0 0 0 !important;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* the inner flex row becomes a vertical stack */
+html[data-primus-layout="sidebar"] #NavigationBar > div {
+  flex: 1 1 auto;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  max-width: none !important;
+  height: auto !important;
+  min-height: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 0;
+}
+
+/* brand block */
+html[data-primus-layout="sidebar"] #NavigationBar #logo {
+  flex: 0 0 auto !important;
+  width: 100%;
+  padding: var(--pr-space-5) var(--pr-space-5) var(--pr-space-4);
+  margin: 0 0 var(--pr-space-2);
+  border-bottom: 1px solid var(--pr-border-weak);
+  overflow: hidden;
+}
+html[data-primus-layout="sidebar"] #NavigationBar #logo > a {
+  display: flex;
+  align-items: center;
+  gap: var(--pr-space-3);
+  font-family: var(--pr-font-display) !important;
+  font-size: 1.15rem !important;
+  font-weight: var(--pr-font-weight-bold) !important;
+  letter-spacing: var(--pr-tracking-tight);
+  color: var(--pr-text-primary) !important;
+  padding: 0 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+html[data-primus-layout="sidebar"] #NavigationBar #logo img {
+  max-height: 30px;
+  width: auto;
+}
+
+/* nav item container */
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) {
+  flex: 0 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  height: auto !important;
+  width: 100% !important;
+  gap: 2px;
+  padding: 0 var(--pr-space-3) var(--pr-space-4);
+  overflow: visible;
+}
+
+/* nav items */
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > a,
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > button,
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > .navigation-link {
+  position: relative;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: var(--pr-space-3);
+  width: 100% !important;
+  height: 44px !important;
+  min-height: 44px;
+  max-height: 44px;
+  padding: 0 var(--pr-space-4) !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: var(--pr-radius-md) !important;
+  color: var(--pr-text-secondary) !important;
+  font-size: var(--pr-text-base) !important;
+  font-weight: var(--pr-font-weight-medium) !important;
+  text-decoration: none !important;
+  white-space: nowrap;
+  cursor: pointer;
+  background: transparent !important;
+  box-shadow: none !important;
+  transition: background-color var(--pr-dur-1) var(--pr-ease),
+    color var(--pr-dur-1) var(--pr-ease);
+  overflow: hidden;
+}
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > a:hover,
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > button:hover,
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > .navigation-link:hover {
+  background: var(--pr-surface-raised) !important;
+  color: var(--pr-text-primary) !important;
+  box-shadow: none !important;
+}
+
+/* active item: accent rail + soft fill */
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > a.active,
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > a[aria-current="page"],
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > a.is-pr-active {
+  background: var(--pr-accent-weak) !important;
+  color: var(--pr-accent-text) !important;
+  box-shadow: none !important;
+}
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > a.active::before,
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > a[aria-current="page"]::before,
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > a.is-pr-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 22px;
+  border-radius: 0 3px 3px 0;
+  background: var(--pr-accent);
+}
+
+/* icons */
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > a svg,
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > button svg,
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > .navigation-link svg,
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > a img,
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > a span[class*="avatar"] {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  color: currentColor;
+  opacity: 0.9;
+}
+html[data-primus-layout="sidebar"] #NavigationLogout,
+html[data-primus-layout="sidebar"] #NavigationAccount {
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  white-space: nowrap !important;
+}
+
+/* injected labels */
+.pr-navlabel {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--pr-font-ui);
+  font-size: var(--pr-text-base);
+  font-weight: var(--pr-font-weight-medium);
+  line-height: 1;
+  text-align: left;
+}
+.pr-navlabel[data-pr-secondary] {
+  font-size: var(--pr-text-xs);
+  color: var(--pr-text-faint);
+  font-weight: var(--pr-font-weight-normal);
+}
+
+/* user block pinned to the bottom of the sidebar */
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > a[href*="/account"],
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > a[id="NavigationAccount"] {
+  margin-top: auto !important;
+}
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) {
+  flex: 1 1 auto !important;
+}
+/* push the last two entries (account + logout) to the foot of the rail */
+html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo):has(> #NavigationLogout) > #NavigationAccount {
+  margin-top: auto !important;
+}
+
+/* collapsed / icon-only rail */
+html[data-primus-layout="sidebar"][data-primus-sidebar="collapsed"] #NavigationBar,
+html[data-primus-layout="sidebar"][data-primus-sidebar="collapsed"] #NavigationBar .pr-navlabel {
+  /* labels hidden below */
+}
+html[data-primus-layout="sidebar"][data-primus-sidebar="collapsed"] #NavigationBar .pr-navlabel,
+html[data-primus-layout="sidebar"][data-primus-sidebar="collapsed"] #NavigationBar #logo > a > span {
+  display: none !important;
+}
+html[data-primus-layout="sidebar"][data-primus-sidebar="collapsed"] #NavigationBar #logo {
+  padding-left: var(--pr-space-3);
+  padding-right: var(--pr-space-3);
+}
+html[data-primus-layout="sidebar"][data-primus-sidebar="collapsed"] #NavigationBar > div > div:not(#logo) {
+  padding: 0 var(--pr-space-3) var(--pr-space-4);
+}
+html[data-primus-layout="sidebar"][data-primus-sidebar="collapsed"] #NavigationBar > div > div:not(#logo) > a,
+html[data-primus-layout="sidebar"][data-primus-sidebar="collapsed"] #NavigationBar > div > div:not(#logo) > button,
+html[data-primus-layout="sidebar"][data-primus-sidebar="collapsed"] #NavigationBar > div > div:not(#logo) > .navigation-link {
+  justify-content: center !important;
+  padding: 0 !important;
+}
+@media (min-width: 641px) and (max-width: 1024px) {
+  html[data-primus-layout="sidebar"] #NavigationBar .pr-navlabel,
+  html[data-primus-layout="sidebar"] #NavigationBar #logo > a > span {
+    display: none !important;
+  }
+  html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > a,
+  html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > button,
+  html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > .navigation-link {
+    justify-content: center !important;
+    padding: 0 !important;
+  }
+}
+
+/* content offset */
+html[data-primus-layout="sidebar"] #app > *:not(#NavigationBar) {
+  margin-left: var(--pr-sidebar-current);
+  transition: margin-left var(--pr-dur-3) var(--pr-ease);
+}
+/* the app itself must not clip the fixed rail */
+html[data-primus-layout="sidebar"] #app {
+  overflow-x: clip;
+}
+
+/* sidebar footer controls (collapse toggle) */
+.pr-shell-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--pr-space-2);
+  width: 100%;
+  height: 38px;
+  margin-top: var(--pr-space-2);
+  border: 0;
+  border-radius: var(--pr-radius-md);
+  background: transparent;
+  color: var(--pr-text-muted);
+  cursor: pointer;
+  font-family: var(--pr-font-ui);
+  font-size: var(--pr-text-sm);
+  transition: background-color var(--pr-dur-1) var(--pr-ease),
+    color var(--pr-dur-1) var(--pr-ease);
+}
+.pr-shell-toggle:hover {
+  background: var(--pr-surface-raised);
+  color: var(--pr-text-primary);
+}
+.pr-shell-toggle svg { width: 16px; height: 16px; }
+
+/* mobile hamburger + scrim */
+.pr-shell-burger {
+  display: none;
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 80;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--pr-border);
+  border-radius: var(--pr-radius-md);
+  background: var(--pr-surface-header);
+  backdrop-filter: blur(10px);
+  color: var(--pr-text-primary);
+  cursor: pointer;
+}
+.pr-shell-scrim {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 65;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+  animation: pr-fade-in var(--pr-dur-2) var(--pr-ease) both;
+}
+
+@media (max-width: 640px) {
+  html[data-primus-layout="sidebar"] #NavigationBar {
+    transform: translateX(-100%);
+    width: var(--pr-sidebar-w) !important;
+    max-width: var(--pr-sidebar-w) !important;
+    box-shadow: var(--pr-shadow-5) !important;
+  }
+  html[data-primus-layout="sidebar"][data-primus-drawer="open"] #NavigationBar {
+    transform: none;
+  }
+  html[data-primus-layout="sidebar"][data-primus-drawer="open"] .pr-shell-scrim {
+    display: block;
+  }
+  html[data-primus-layout="sidebar"] #app > *:not(#NavigationBar) {
+    margin-left: 0 !important;
+  }
+  html[data-primus-layout="sidebar"] .pr-shell-burger {
+    display: inline-flex;
+  }
+  /* labels come back inside the drawer */
+  html[data-primus-layout="sidebar"] #NavigationBar .pr-navlabel,
+  html[data-primus-layout="sidebar"] #NavigationBar #logo > a > span {
+    display: block !important;
+  }
+  html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > a,
+  html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > button,
+  html[data-primus-layout="sidebar"] #NavigationBar > div > div:not(#logo) > .navigation-link {
+    justify-content: flex-start !important;
+    padding: 0 var(--pr-space-4) !important;
+  }
+}
+
+/* ══════════════════════════ Top bar layout ══════════════════════════ */
+html[data-primus-layout="topbar"] #NavigationBar {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 70 !important;
+  background: var(--pr-surface-header) !important;
+  backdrop-filter: blur(14px) saturate(1.4) !important;
+  border-bottom: 1px solid var(--pr-border) !important;
+  box-shadow: none !important;
+}
+html[data-primus-layout="topbar"] #NavigationBar #logo > a {
+  font-family: var(--pr-font-display) !important;
+  color: var(--pr-text-primary) !important;
+}
+html[data-primus-layout="topbar"] #NavigationBar .pr-navlabel {
+  display: none !important;
+}
+html[data-primus-layout="topbar"] .pr-shell-toggle {
+  display: none !important;
+}
+
+/* ══════════════════════════ Flush / boxed container ══════════════════════════ */
+html[data-primus-container="flush"] #app [class*="ContentContainer"],
+html[data-primus-container="flush"] #app main {
+  max-width: var(--pr-container-max) !important;
+}
+html[data-primus-container="flush"] #app #SubNavigation > div {
+  max-width: var(--pr-container-max) !important;
+}
+html[data-primus-container="boxed"] #app #SubNavigation > div {
+  max-width: 1200px !important;
+}
+
+/* ══════════════════════════ Sub-navigation strip ══════════════════════════ */
+html[data-primus-layout="sidebar"] #SubNavigation {
+  background: var(--pr-surface-header) !important;
+  backdrop-filter: blur(14px) saturate(1.4) !important;
+  border-bottom: 1px solid var(--pr-border) !important;
+  box-shadow: none !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 55 !important;
+}
+html[data-primus-layout="sidebar"] #SubNavigation > div {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--pr-space-1) !important;
+  padding: var(--pr-space-2) var(--pr-space-4) !important;
+  margin: 0 !important;
+}
+html[data-primus-layout="sidebar"] #SubNavigation a,
+html[data-primus-layout="sidebar"] #SubNavigation button {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: var(--pr-space-2);
+  padding: var(--pr-space-2) var(--pr-space-4) !important;
+  border-radius: var(--pr-radius-md) !important;
+  color: var(--pr-text-secondary) !important;
+  font-size: var(--pr-text-sm) !important;
+  font-weight: var(--pr-font-weight-medium) !important;
+  line-height: 1.2 !important;
+  text-decoration: none !important;
+  box-shadow: none !important;
+  transition: background-color var(--pr-dur-1) var(--pr-ease),
+    color var(--pr-dur-1) var(--pr-ease);
+}
+html[data-primus-layout="sidebar"] #SubNavigation a:hover,
+html[data-primus-layout="sidebar"] #SubNavigation button:hover {
+  background: var(--pr-surface-raised) !important;
+  color: var(--pr-text-primary) !important;
+}
+html[data-primus-layout="sidebar"] #SubNavigation a.active,
+html[data-primus-layout="sidebar"] #SubNavigation a[aria-current="page"],
+html[data-primus-layout="sidebar"] #SubNavigation a.is-pr-active {
+  background: var(--pr-accent-weak) !important;
+  color: var(--pr-accent-text) !important;
+  box-shadow: none !important;
+}
+
+/* ══════════════════════════ Pinned power controls ══════════════════════════ */
+/* shell.js tags the stock power-button wrapper with .pr-powerbar */
+.pr-powerbar {
+  display: flex;
+  align-items: center;
+  gap: var(--pr-space-2);
+}
+html[data-primus-power="sidebar"] .pr-powerbar {
+  position: sticky;
+  bottom: var(--pr-shell-gap);
+  z-index: 30;
+  padding: var(--pr-space-2);
+  border: 1px solid var(--pr-border);
+  border-radius: var(--pr-radius-lg);
+  background: var(--pr-surface-header);
+  backdrop-filter: blur(12px) saturate(1.3);
+  box-shadow: var(--pr-shadow-3);
+}
+html[data-primus-power="floating"] .pr-powerbar {
+  position: fixed;
+  right: var(--pr-shell-gap);
+  bottom: var(--pr-shell-gap);
+  z-index: 60;
+  padding: var(--pr-space-2);
+  border: 1px solid var(--pr-border);
+  border-radius: var(--pr-radius-pill);
+  background: var(--pr-surface-header);
+  backdrop-filter: blur(12px) saturate(1.3);
+  box-shadow: var(--pr-shadow-4);
+}
+html[data-primus-power="sidebar"] .pr-powerbar button,
+html[data-primus-power="floating"] .pr-powerbar button {
+  min-width: 84px;
+}
+
+/* ══════════════════════════ Shared shell polish ══════════════════════════ */
+html[data-primus-layout] body {
+  background-attachment: fixed;
+}
+
+/* auth pages: never offset for a sidebar that is not there */
+body:has(form img[src*="pterodactyl"]) #NavigationBar,
+body.pr-auth #NavigationBar {
+  display: none !important;
+}
+body:has(form img[src*="pterodactyl"]) #app > *,
+body.pr-auth #app > * {
+  margin-left: 0 !important;
+}
+body.pr-auth .pr-editor-fab,
+body.pr-auth .pr-editor,
+body:has(form img[src*="pterodactyl"]) .pr-editor-fab,
+body:has(form img[src*="pterodactyl"]) .pr-editor {
+  display: none !important;
+}
+
+/* keep the fixed rail from being overlapped by floating widgets */
+html[data-primus-layout="sidebar"] .pr-palette-mask { padding-left: var(--pr-sidebar-current); }
+html[data-primus-layout="sidebar"] .pr-toasts { right: var(--pr-shell-gap); }
+
+/* ══════════════════════════ Live layout editor ══════════════════════════ */
+.pr-editor-fab {
+  position: fixed;
+  right: var(--pr-shell-gap);
+  bottom: var(--pr-shell-gap);
+  z-index: 90;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--pr-border-strong);
+  border-radius: var(--pr-radius-pill);
+  background: var(--pr-surface-header);
+  backdrop-filter: blur(12px) saturate(1.3);
+  color: var(--pr-text-primary);
+  box-shadow: var(--pr-shadow-3);
+  cursor: pointer;
+  transition: transform var(--pr-dur-1) var(--pr-ease),
+    border-color var(--pr-dur-1) var(--pr-ease);
+}
+.pr-editor-fab:hover { border-color: var(--pr-accent); transform: translateY(-1px); }
+.pr-editor {
+  position: fixed;
+  right: var(--pr-shell-gap);
+  bottom: calc(var(--pr-shell-gap) + 56px);
+  z-index: 91;
+  width: min(320px, calc(100vw - 40px));
+  background: var(--pr-surface);
+  border: 1px solid var(--pr-border);
+  border-radius: var(--pr-radius-xl);
+  box-shadow: var(--pr-shadow-5);
+  overflow: hidden;
+}
+.pr-editor[hidden] { display: none !important; }
+.pr-editor__head {
+  display: flex;
+  align-items: center;
+  gap: var(--pr-space-3);
+  padding: var(--pr-space-4) var(--pr-space-4) var(--pr-space-3);
+  border-bottom: 1px solid var(--pr-border-weak);
+}
+.pr-editor__head strong {
+  flex: 1 1 auto;
+  font-family: var(--pr-font-display);
+  font-size: var(--pr-text-base);
+  color: var(--pr-text-primary);
+}
+.pr-editor__head span { font-size: var(--pr-text-xs); color: var(--pr-text-muted); }
+.pr-editor__body { padding: var(--pr-space-4); display: flex; flex-direction: column; gap: var(--pr-space-4); }
+.pr-editor__field { display: flex; flex-direction: column; gap: var(--pr-space-2); }
+.pr-editor__field > label {
+  font-size: var(--pr-text-xs);
+  font-weight: var(--pr-font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pr-text-muted);
+}
+.pr-editor__pills { display: flex; flex-wrap: wrap; gap: var(--pr-space-2); }
+
+html[data-primus-layout="sidebar"][data-primus-sidebar="collapsed"] #NavigationBar #logo > a .pr-logo-text {
+  display: none !important;
+}

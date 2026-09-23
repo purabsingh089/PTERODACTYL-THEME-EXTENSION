@@ -119,8 +119,31 @@
     P.util.attr(document.documentElement, "data-primus-theme", theme);
     var vib = P.set("appearance.vibrance", "normal");
     P.util.attr(document.documentElement, "data-primus-vibrance", vib);
+    applyAppearanceFlags();
     applyFavicon();
   };
+
+  function cardScaleValue() {
+    var raw = parseFloat(P.set("appearance.card_scale", 1));
+    if (!(raw > 0)) raw = 1;
+    return Math.max(0.85, Math.min(1.2, raw));
+  }
+
+  /* Card scale is desktop-only: inline custom properties beat the CSS
+     media query, so below 720px the variable is forced back to 1 both at
+     boot and on resize. */
+  function applyCardScale() {
+    P.util.css("--pr-card-scale", window.innerWidth < 720 ? "1" : String(cardScaleValue()));
+  }
+
+  function applyAppearanceFlags() {
+    var density = P.set("appearance.density", "comfortable");
+    P.util.attr(document.documentElement, "data-primus-density",
+      density === "compact" ? "compact" : "comfortable");
+    P.util.attr(document.documentElement, "data-primus-hide-copyright",
+      P.set("appearance.hide_stock_copyright", false) ? "1" : "0");
+    applyCardScale();
+  }
 
   function applyFavicon() {
     var url = P.set("appearance.favicon_url", "");
@@ -280,15 +303,21 @@
       credentials: "same-origin",
       headers: { Accept: "application/json" },
     };
-    var csrf = document.querySelector('meta[name="csrf-token"]');
-    if (init.method !== "GET" && csrf && csrf.content) {
-      init.headers["X-CSRF-TOKEN"] = csrf.content;
+    var csrf = document.querySelector('meta[name="csrf-token"]')
+      || document.querySelector('meta[name="_token"]');
+    var csrfVal = csrf && csrf.content;
+    if (!csrfVal) {
+      var hidden = document.querySelector('input[name="_token"]');
+      csrfVal = hidden && hidden.value;
+    }
+    if (init.method !== "GET" && csrfVal) {
+      init.headers["X-CSRF-TOKEN"] = csrfVal;
     }
     if (opts.json) {
       init.headers["Content-Type"] = "application/json";
       init.body = JSON.stringify(opts.json);
     }
-    return fetch("/extensions/primus/" + path, init).then(function (r) {
+    return fetch("/extensions/" + (P.identifier || "primus") + "/" + path, init).then(function (r) {
       if (!r.ok) {
         return r.json().catch(function () { return {}; }).then(function (b) {
           var err = new Error(b.error || ("HTTP " + r.status));
@@ -312,6 +341,7 @@
     startObserver();
     pageTransitions();
     setTimeout(applyLogo, 400);
+    window.addEventListener("resize", P.util.debounce(applyCardScale, 150));
     P._ready(P.settings);
   }
 

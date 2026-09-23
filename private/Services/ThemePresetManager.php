@@ -68,8 +68,8 @@ class ThemePresetManager
             $overrides = $preset['overrides'] ?? [];
             if (!isset($preset['swatch'])) {
                 $presets[$id]['swatch'] = [
-                    'a' => $overrides['--pr-accent'] ?? '#6d5df6',
-                    'b' => $overrides['--pr-accent-strong'] ?? '#8577ff',
+                    'a' => $overrides['--pr-accent'] ?? '#0050b8',
+                    'b' => $overrides['--pr-accent-strong'] ?? '#1e6fe0',
                 ];
             }
         }

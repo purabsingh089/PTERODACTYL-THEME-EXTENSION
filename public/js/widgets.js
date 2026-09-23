@@ -3,7 +3,8 @@
  * Client-side feature widgets built on the theme.js widget framework:
  *   announcements banner, custom footer/socials, notification center (bell),
  *   server favorites + grid/list toggle + fuzzy search, empty states,
- *   backups timeline, file-manager drop-zone polish, onboarding tour.
+ *   backups timeline, file-manager drop-zone polish, onboarding tour,
+ *   auth/login overlay (login, checkpoint, forgot, reset).
  */
 (function () {
   "use strict";
@@ -250,7 +251,10 @@
     if (a.closest && a.closest(".pr-quickactions")) return false;
     if (a.closest && a.closest('nav, [class*="SubNavigation"], [class*="Navigation"], header')) return false;
     var href = a.getAttribute("href") || "";
-    return !/\/server\/[a-f0-9]+\/(files|console|databases|schedules|users|backups|network|startup|settings|admin|activity)/.test(href);
+    if (!/^\/server\/[a-zA-Z0-9-]+\/?$/.test(href.split("?")[0])) return false;
+    var parentCard = a.parentElement && a.parentElement.closest && a.parentElement.closest('a[href^="/server/"]');
+    if (parentCard) return false;
+    return true;
   }
 
   function serverRowNodes() {
@@ -270,13 +274,24 @@
     rows.forEach(function (r) { container.appendChild(r); });
   }
 
+  function isNarrowServerList() {
+    return window.innerWidth < 720;
+  }
+
   function applyServerListLayout() {
-    var layout = P.store.get("serverlist:layout", "list");
+    var layout = isNarrowServerList() ? "grid" : P.store.get("serverlist:layout", "grid");
     var rows = serverRowNodes();
     if (!rows.length) return;
     var container = rows[0].parentNode;
-    container.classList.toggle("pr-servergrid", layout === "grid");
-    rows.forEach(function (r) { r.classList.toggle("pr-servergrid__card", layout === "grid"); });
+    container.classList.add("pr-servergrid");
+    container.classList.toggle("pr-serverlist", layout === "list");
+    rows.forEach(function (r) { r.classList.add("pr-servergrid__card"); });
+    var toolbar = U.q(".pr-servers-toolbar");
+    if (toolbar) {
+      U.qa("[data-pr-layout]", toolbar).forEach(function (btn) {
+        btn.classList.toggle("is-active", btn.dataset.prLayout === layout);
+      });
+    }
   }
 
   function mountServerToolbar() {
@@ -297,14 +312,11 @@
     );
     rows[0].parentNode.insertBefore(toolbar, rows[0]);
 
-    var active = P.store.get("serverlist:layout", "list");
+    var active = P.store.get("serverlist:layout", "grid");
     U.qa("[data-pr-layout]", toolbar).forEach(function (btn) {
       btn.classList.toggle("is-active", btn.dataset.prLayout === active);
       btn.addEventListener("click", function () {
         P.store.set("serverlist:layout", btn.dataset.prLayout);
-        U.qa("[data-pr-layout]", toolbar).forEach(function (b) {
-          b.classList.toggle("is-active", b === btn);
-        });
         applyServerListLayout();
       });
     });
@@ -325,7 +337,6 @@
     if (U.attr(row, "data-pr-qa") || !P.set("quickactions.enabled", true)) return;
     U.attr(row, "data-pr-qa", "1");
     var id = serverIdFromRow(row);
-    var host = row.querySelector("div:last-of-type") || row;
     var qa = U.el(
       "div",
       "pr-quickactions",
@@ -342,7 +353,7 @@
         P.notify("Power signal sent", "Restart requested for server " + id + ".", "info");
       });
     });
-    host.appendChild(qa);
+    row.appendChild(qa);
   }
 
   function sendPowerSignal(id, signal) {
@@ -488,6 +499,115 @@
     place();
   }
 
+  /* ═══════════ auth / login overlay ═══════════ */
+  function isAuthPage() {
+    var path = location.pathname || "";
+    return /^\/auth(\/|$)/.test(path) || path === "/login";
+  }
+
+  function authCopy() {
+    var path = location.pathname || "";
+    if (/\/auth\/login\/checkpoint/.test(path)) {
+      return { title: "Device checkpoint", sub: "Enter the code from your authenticator" };
+    }
+    if (/\/auth\/password\/reset/.test(path)) {
+      return { title: "Set a new password", sub: "Choose a password at least 8 characters long" };
+    }
+    if (/\/auth\/password/.test(path)) {
+      return { title: "Forgot password", sub: "We'll send reset instructions to your email" };
+    }
+    return { title: "Welcome back", sub: "Sign in to continue to your panel" };
+  }
+
+  function brandHtml() {
+    return (
+      '<div class="pr-auth-brand">' +
+        '<span class="pr-auth-mark" aria-hidden="true">' +
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="48" height="48" fill="none" role="img" aria-label="Primus">' +
+            "<defs>" +
+              '<linearGradient id="prAuthMark" x1="0" y1="0" x2="64" y2="64">' +
+                '<stop offset="0" stop-color="#1e6fe0"/>' +
+                '<stop offset="1" stop-color="#0050b8"/>' +
+              "</linearGradient>" +
+            "</defs>" +
+            '<rect x="2" y="2" width="60" height="60" rx="16" fill="url(#prAuthMark)"/>' +
+            '<rect x="2.75" y="2.75" width="58.5" height="58.5" rx="15.25" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1.5"/>' +
+            '<path d="M22 46V18h11.4a8.6 8.6 0 0 1 0 17.2H30.5V46H22Zm8.5-24.2H30.5v6.4h3a3.2 3.2 0 0 0 0-6.4Z" fill="#fff" fill-opacity="0.92"/>' +
+          "</svg>" +
+        "</span>" +
+        '<span class="pr-auth-wordmark">Primus</span>' +
+        '<h1 class="pr-auth-heading"></h1>' +
+        '<p class="pr-auth-tag"></p>' +
+      "</div>"
+    );
+  }
+
+  function polishAuth() {
+    var on = isAuthPage();
+    document.documentElement.classList.toggle("pr-auth", on);
+    document.body.classList.toggle("pr-auth", on);
+    if (!on) return;
+
+    var form = U.q("#app form") || U.q("form");
+    if (!form) return;
+    form.classList.add("pr-auth-form");
+
+    var shell = form.parentElement;
+    if (shell) {
+      shell.classList.add("pr-auth-shell");
+      ["padding", "padding-top", "padding-right", "padding-bottom", "padding-left"].forEach(function (prop) {
+        shell.style.setProperty(prop, "0px", "important");
+      });
+      shell.style.setProperty("width", "min(420px, calc(100vw - 32px))", "important");
+      shell.style.setProperty("max-width", "min(420px, calc(100vw - 32px))", "important");
+      shell.style.setProperty("box-sizing", "border-box", "important");
+    }
+    form.style.setProperty("width", "100%", "important");
+    form.style.setProperty("max-width", "none", "important");
+    form.style.setProperty("display", "block", "important");
+
+    var card = form.querySelector(":scope > div") || form.firstElementChild;
+    if (card) {
+      card.classList.add("pr-auth-card");
+      if (!card.querySelector(".pr-auth-brand")) {
+        var kids = Array.prototype.slice.call(card.children);
+        kids.forEach(function (el) {
+          if (el.querySelector && el.querySelector('img[src*="pterodactyl"]')) {
+            el.classList.add("pr-auth-aside");
+          } else {
+            el.classList.add("pr-auth-fields");
+          }
+        });
+        var wrap = U.el("div");
+        wrap.innerHTML = brandHtml();
+        card.insertBefore(wrap.firstElementChild, card.firstChild);
+      }
+    }
+
+    var copy = authCopy();
+    var heading = form.querySelector(".pr-auth-heading");
+    var tag = form.querySelector(".pr-auth-tag");
+    if (heading) heading.textContent = copy.title;
+    if (tag) tag.textContent = copy.sub;
+
+    var h2 = shell && shell.querySelector("h2");
+    if (h2) {
+      h2.classList.add("pr-auth-title");
+      h2.setAttribute("aria-hidden", "true");
+    }
+
+    U.qa("button[type='submit']", form).forEach(function (b) {
+      b.classList.add("pr-auth-submit");
+    });
+    U.qa("a[href='/auth/password'], a[href='/auth/login']", form).forEach(function (a) {
+      a.classList.add("pr-auth-link");
+    });
+    U.qa('img[src*="pterodactyl"]', form).forEach(function (img) {
+      img.setAttribute("alt", "");
+      img.setAttribute("aria-hidden", "true");
+    });
+  }
+
   /* ═══════════ wiring ═══════════ */
   P.register({
     each: "#root",
@@ -515,16 +635,28 @@
     observe: function (node) { mountFileDropZone(node); },
   });
 
+  P.register({
+    each: "#app form, form",
+    observe: function () { polishAuth(); },
+  });
+
   P.on("page:view", function (ev) {
     setTimeout(function () {
+      polishAuth();
       decorateEmptyStates();
       timelineifyBackups();
       if (/\/server\/[a-zA-Z0-9]+\/?$/.test(ev.path)) setTimeout(runTour, 1500);
     }, 700);
   });
 
+  if (isAuthPage()) {
+    if (document.body) polishAuth();
+    else document.addEventListener("DOMContentLoaded", polishAuth);
+  }
+
   P.ready.then(function () {
     setTimeout(function () {
+      polishAuth();
       mountBell();
       mountServerToolbar();
       applyServerListLayout();
@@ -538,5 +670,6 @@
     setInterval(function () {
       if (!U.q(".pr-bell")) mountBell();
     }, 5000);
+    window.addEventListener("resize", U.debounce(applyServerListLayout, 120));
   });
 })();
