@@ -1,3 +1,5 @@
+@extends('layouts.admin')
+
 {{--
   Primus · Admin customizer view (self-contained).
   Rendered by primusExtensionController@index with $settings, $presets,
@@ -5,10 +7,67 @@
   Spec partials under admin/partials/*.blade.php are kept for reference /
   build-time inlining (Blueprint installs only this single view file).
 --}}
-<style id="primus-admin-css">
-@import url("/extensions/primus/css/admin-customizer.css");
-</style>
+@php
+    $prxMode = (($settings['appearance']['theme'] ?? 'dark') === 'light') ? 'light' : 'dark';
+    $prxPalette = $prxMode === 'light' ? [
+        '--pr-page' => '#f4f6fb',
+        '--pr-surface' => '#ffffff',
+        '--pr-surface-raised' => '#ffffff',
+        '--pr-surface-sunken' => '#f4f6fb',
+        '--pr-border' => '#e2e6f1',
+        '--pr-text-primary' => '#1b1e31',
+        '--pr-text-secondary' => '#4c536c',
+        '--pr-text-muted' => '#767d97',
+        '--pr-success' => '#16a06b',
+        '--pr-warning' => '#d48a08',
+        '--pr-danger' => '#d94053',
+        '--pr-info' => '#1f7bd0',
+        '--pr-accent' => $settings['overrides']['--pr-accent'] ?? '#0050b8',
+        '--pr-accent-strong' => $settings['overrides']['--pr-accent-strong'] ?? '#1e6fe0',
+    ] : [
+        '--pr-page' => '#0a0b1a',
+        '--pr-surface' => '#12142a',
+        '--pr-surface-raised' => '#1c2039',
+        '--pr-surface-sunken' => '#0a0b1a',
+        '--pr-border' => '#2a2f4a',
+        '--pr-text-primary' => '#edeff7',
+        '--pr-text-secondary' => '#aab0c8',
+        '--pr-text-muted' => '#737a99',
+        '--pr-success' => '#3ecf8e',
+        '--pr-warning' => '#f5b644',
+        '--pr-danger' => '#f45f6f',
+        '--pr-info' => '#4ea1ef',
+        '--pr-accent' => $settings['overrides']['--pr-accent'] ?? '#0050b8',
+        '--pr-accent-strong' => $settings['overrides']['--pr-accent-strong'] ?? '#1e6fe0',
+    ];
+    // Seed for the pickers: stored override when it is a valid #rrggbb,
+    // otherwise the theme's token default (display only — no override is
+    // written until the admin actually edits a control).
+    $prxHex = function ($prop) use ($settings, $prxPalette) {
+        $v = $settings['overrides'][$prop] ?? '';
+        if (is_string($v) && preg_match('/^#[0-9a-fA-F]{6}$/', $v)) return $v;
+        return $prxPalette[$prop] ?? '';
+    };
+@endphp
 
+@section('title')
+    Primus
+@endsection
+
+@section('content-header')
+    <h1>Primus <small>Appearance &amp; AI</small></h1>
+    <ol class="breadcrumb">
+        <li><a href="{{ route('admin.index') }}">Admin</a></li>
+        <li class="active">Primus</li>
+    </ol>
+@endsection
+
+@section('scripts')
+    @parent
+    <link rel="stylesheet" href="{webroot/public}/css/admin-customizer.css?v=1788700902{timestamp}" id="primus-admin-css">
+@endsection
+
+@section('content')
 <div class="primus-admin"
      data-version="{{ $version }}"
      data-active-preset="{{ $active_preset }}"
@@ -75,15 +134,15 @@
         <div class="prx-field">
           <label>Accent color</label>
           <div class="prx-colorrow">
-            <input type="color" id="prx-accent" value="{{ $settings['overrides']['--pr-accent'] ?? '#6d5df6' }}">
-            <input type="text" id="prx-accent-text" value="{{ $settings['overrides']['--pr-accent'] ?? '#6d5df6' }}" maxlength="7">
+            <input type="color" id="prx-accent" value="{{ $prxHex('--pr-accent') }}">
+            <input type="text" id="prx-accent-text" value="{{ $prxHex('--pr-accent') }}" maxlength="7">
           </div>
         </div>
         <div class="prx-field">
           <label>Accent (bright / hover)</label>
           <div class="prx-colorrow">
-            <input type="color" id="prx-accent-strong" value="{{ $settings['overrides']['--pr-accent-strong'] ?? '#8577ff' }}">
-            <input type="text" id="prx-accent-strong-text" value="{{ $settings['overrides']['--pr-accent-strong'] ?? '#8577ff' }}" maxlength="7">
+            <input type="color" id="prx-accent-strong" value="{{ $prxHex('--pr-accent-strong') }}">
+            <input type="text" id="prx-accent-strong-text" value="{{ $prxHex('--pr-accent-strong') }}" maxlength="7">
           </div>
         </div>
         <div class="prx-field">
@@ -94,9 +153,104 @@
             <option value="vivid">Vivid</option>
           </select>
         </div>
-      </div>
-      <div class="prx-col">
-        <h3 class="prx-h">Shape</h3>
+
+        <h3 class="prx-h" style="margin-top:var(--pr-space-6)">Surface</h3>
+        <div class="prx-colorgrid">
+          <div class="prx-field">
+            <label>Page background</label>
+            <div class="prx-colorrow">
+              <input type="color" id="prx-c-page" value="{{ $prxHex('--pr-page') }}">
+              <input type="text" id="prx-c-page-text" value="{{ $prxHex('--pr-page') }}" maxlength="7">
+            </div>
+          </div>
+          <div class="prx-field">
+            <label>Card background</label>
+            <div class="prx-colorrow">
+              <input type="color" id="prx-c-surface" value="{{ $prxHex('--pr-surface') }}">
+              <input type="text" id="prx-c-surface-text" value="{{ $prxHex('--pr-surface') }}" maxlength="7">
+            </div>
+          </div>
+          <div class="prx-field">
+            <label>Raised background</label>
+            <div class="prx-colorrow">
+              <input type="color" id="prx-c-surface-raised" value="{{ $prxHex('--pr-surface-raised') }}">
+              <input type="text" id="prx-c-surface-raised-text" value="{{ $prxHex('--pr-surface-raised') }}" maxlength="7">
+            </div>
+          </div>
+          <div class="prx-field">
+            <label>Sunken background</label>
+            <div class="prx-colorrow">
+              <input type="color" id="prx-c-surface-sunken" value="{{ $prxHex('--pr-surface-sunken') }}">
+              <input type="text" id="prx-c-surface-sunken-text" value="{{ $prxHex('--pr-surface-sunken') }}" maxlength="7">
+            </div>
+          </div>
+          <div class="prx-field">
+            <label>Borders</label>
+            <div class="prx-colorrow">
+              <input type="color" id="prx-c-border" value="{{ $prxHex('--pr-border') }}">
+              <input type="text" id="prx-c-border-text" value="{{ $prxHex('--pr-border') }}" maxlength="7">
+            </div>
+          </div>
+        </div>
+
+        <h3 class="prx-h" style="margin-top:var(--pr-space-6)">Text</h3>
+        <div class="prx-colorgrid">
+          <div class="prx-field">
+            <label>Primary</label>
+            <div class="prx-colorrow">
+              <input type="color" id="prx-c-text-primary" value="{{ $prxHex('--pr-text-primary') }}">
+              <input type="text" id="prx-c-text-primary-text" value="{{ $prxHex('--pr-text-primary') }}" maxlength="7">
+            </div>
+          </div>
+          <div class="prx-field">
+            <label>Secondary</label>
+            <div class="prx-colorrow">
+              <input type="color" id="prx-c-text-secondary" value="{{ $prxHex('--pr-text-secondary') }}">
+              <input type="text" id="prx-c-text-secondary-text" value="{{ $prxHex('--pr-text-secondary') }}" maxlength="7">
+            </div>
+          </div>
+          <div class="prx-field">
+            <label>Muted</label>
+            <div class="prx-colorrow">
+              <input type="color" id="prx-c-text-muted" value="{{ $prxHex('--pr-text-muted') }}">
+              <input type="text" id="prx-c-text-muted-text" value="{{ $prxHex('--pr-text-muted') }}" maxlength="7">
+            </div>
+          </div>
+        </div>
+
+        <h3 class="prx-h" style="margin-top:var(--pr-space-6)">Semantic</h3>
+        <div class="prx-colorgrid">
+          <div class="prx-field">
+            <label>Success</label>
+            <div class="prx-colorrow">
+              <input type="color" id="prx-c-success" value="{{ $prxHex('--pr-success') }}">
+              <input type="text" id="prx-c-success-text" value="{{ $prxHex('--pr-success') }}" maxlength="7">
+            </div>
+          </div>
+          <div class="prx-field">
+            <label>Warning</label>
+            <div class="prx-colorrow">
+              <input type="color" id="prx-c-warning" value="{{ $prxHex('--pr-warning') }}">
+              <input type="text" id="prx-c-warning-text" value="{{ $prxHex('--pr-warning') }}" maxlength="7">
+            </div>
+          </div>
+          <div class="prx-field">
+            <label>Danger</label>
+            <div class="prx-colorrow">
+              <input type="color" id="prx-c-danger" value="{{ $prxHex('--pr-danger') }}">
+              <input type="text" id="prx-c-danger-text" value="{{ $prxHex('--pr-danger') }}" maxlength="7">
+            </div>
+          </div>
+          <div class="prx-field">
+            <label>Info</label>
+            <div class="prx-colorrow">
+              <input type="color" id="prx-c-info" value="{{ $prxHex('--pr-info') }}">
+              <input type="text" id="prx-c-info-text" value="{{ $prxHex('--pr-info') }}" maxlength="7">
+            </div>
+          </div>
+        </div>
+
+        <h3 class="prx-h" style="margin-top:var(--pr-space-6)">Shape</h3>
         <div class="prx-field">
           <label>Corner radius <span class="prx-value" id="prx-radius-value"></span></label>
           <input type="range" id="prx-radius" min="0.5" max="2" step="0.05">
@@ -105,11 +259,59 @@
           <label>Shadow intensity <span class="prx-value" id="prx-shadow-value"></span></label>
           <input type="range" id="prx-shadow" min="0" max="2" step="0.05">
         </div>
+      </div>
+      <div class="prx-col">
+        <details class="prx-details">
+          <summary>Login page colors <span class="prx-chip">optional</span></summary>
+          <small class="prx-hint" style="display:block;margin-bottom:var(--pr-space-3)">
+            Leave empty to inherit the surface &amp; accent colors above.
+          </small>
+          <div class="prx-field">
+            <label>Card background</label>
+            <div class="prx-colorrow">
+              <input type="color" id="prx-auth-card-bg" value="{{ $prxHex('--pr-surface') }}"
+                     data-prx-default="{{ $prxHex('--pr-surface') }}">
+              <input type="text" id="prx-auth-card-bg-text" value="{{ $settings['overrides']['--pr-auth-card-bg'] ?? '' }}"
+                     placeholder="auto" maxlength="7">
+              <button type="button" class="prx-clear" id="prx-clear-auth-card-bg" title="Reset to inherited" hidden>&times;</button>
+            </div>
+          </div>
+          <div class="prx-field">
+            <label>Submit button</label>
+            <div class="prx-colorrow">
+              <input type="color" id="prx-auth-submit" value="{{ $prxHex('--pr-accent') }}"
+                     data-prx-default="{{ $prxHex('--pr-accent') }}">
+              <input type="text" id="prx-auth-submit-text" value="{{ $settings['overrides']['--pr-auth-submit'] ?? '' }}"
+                     placeholder="accent" maxlength="7">
+              <button type="button" class="prx-clear" id="prx-clear-auth-submit" title="Reset to inherited" hidden>&times;</button>
+            </div>
+          </div>
+        </details>
+
+        <h3 class="prx-h">Layout</h3>
+        <div class="prx-field">
+          <label>Content density</label>
+          <select id="prx-density">
+            <option value="comfortable">Comfortable (default)</option>
+            <option value="compact">Compact &mdash; tighter spacing</option>
+          </select>
+        </div>
+        <div class="prx-field">
+          <label>Server card size <span class="prx-value" id="prx-card-scale-value"></span></label>
+          <input type="range" id="prx-card-scale" min="0.85" max="1.2" step="0.05">
+          <small class="prx-hint">Scales the hero-card art height and padding on desktop (0.85&times; &ndash; 1.20&times;). Mobile always stays at 1&times;.</small>
+        </div>
+        <div class="prx-field">
+          <label class="prx-check"><input type="checkbox" id="prx-hide-copyright"> Hide the stock Pterodactyl copyright notice under the login card</label>
+        </div>
         <div class="prx-field">
           <label>Quick toggles</label>
           <label class="prx-check"><input type="checkbox" id="prx-shortcuts-hint"> Shortcut hint in client footer</label>
           <label class="prx-check"><input type="checkbox" id="prx-quickactions"> Hover quick-actions on server rows</label>
         </div>
+        <small class="prx-hint prx-hint-preset">
+          Applying a preset in the Presets tab replaces the custom colors above. Density, card size and the copyright-notice toggle are kept.
+        </small>
       </div>
     </div>
   </section>
@@ -316,7 +518,11 @@
     favicon_url: defaultAppearance.favicon_url || "",
     font_heading: defaultAppearance.font_heading || "",
     font_body: defaultAppearance.font_body || "",
-    font_mono: defaultAppearance.font_mono || ""
+    font_mono: defaultAppearance.font_mono || "",
+    density: defaultAppearance.density === "compact" ? "compact" : "comfortable",
+    card_scale: defaultAppearance.card_scale != null && +defaultAppearance.card_scale > 0
+      ? Math.max(0.85, Math.min(1.2, +defaultAppearance.card_scale)) : 1,
+    hide_stock_copyright: !!defaultAppearance.hide_stock_copyright
   };
   var footer = JSON.parse(JSON.stringify(settings.footer || { enabled: true, label: "", links: [] }));
   var announcements = { text: ((settings.announcements || {}).text) || "" };
@@ -407,6 +613,64 @@
   }
   wireRange("prx-radius", "prx-radius-value", "radius", "--pr-radius-multiplier");
   wireRange("prx-shadow", "prx-shadow-value", "shadow", "--pr-shadow-multiplier");
+
+  // ── full token pickers: surface / text / semantic ──
+  ["page", "surface", "surface-raised", "surface-sunken", "border",
+   "text-primary", "text-secondary", "text-muted",
+   "success", "warning", "danger", "info"].forEach(function (suffix) {
+    wireColor("prx-c-" + suffix, "prx-c-" + suffix + "-text", "--pr-" + suffix);
+  });
+
+  // ── layout: density, card scale, stock copyright notice ──
+  var densitySel = document.getElementById("prx-density");
+  densitySel.value = appearance.density;
+  densitySel.addEventListener("change", function () {
+    appearance.density = densitySel.value;
+    document.documentElement.setAttribute("data-primus-density", densitySel.value);
+    markDirty();
+  });
+  wireRange("prx-card-scale", "prx-card-scale-value", "card_scale", "--pr-card-scale");
+  var hideCopy = document.getElementById("prx-hide-copyright");
+  hideCopy.checked = !!appearance.hide_stock_copyright;
+  hideCopy.addEventListener("change", function () {
+    appearance.hide_stock_copyright = hideCopy.checked;
+    document.documentElement.setAttribute("data-primus-hide-copyright", hideCopy.checked ? "1" : "0");
+    markDirty();
+  });
+
+  // ── optional login colors: no override until edited, clearable ──
+  function wireOptionalColor(colorId, textId, prop, clearId) {
+    var c = document.getElementById(colorId), t = document.getElementById(textId), x = document.getElementById(clearId);
+    if (!c || !t || !x) return;
+    function syncClear() { x.hidden = !(overrides[prop]); }
+    c.addEventListener("input", function () {
+      overrides[prop] = c.value; t.value = c.value;
+      document.documentElement.style.setProperty(prop, c.value);
+      syncClear(); markDirty();
+    });
+    t.addEventListener("change", function () {
+      if (/^#[0-9a-fA-F]{6}$/.test(t.value)) {
+        overrides[prop] = t.value; c.value = t.value;
+        document.documentElement.style.setProperty(prop, t.value);
+        syncClear(); markDirty();
+      } else if (t.value === "") {
+        delete overrides[prop];
+        c.value = c.getAttribute("data-prx-default") || c.value;
+        document.documentElement.style.removeProperty(prop);
+        syncClear(); markDirty();
+      } else { t.value = overrides[prop] || ""; }
+    });
+    x.addEventListener("click", function () {
+      delete overrides[prop];
+      c.value = c.getAttribute("data-prx-default") || c.value;
+      t.value = "";
+      document.documentElement.style.removeProperty(prop);
+      syncClear(); markDirty();
+    });
+    syncClear();
+  }
+  wireOptionalColor("prx-auth-card-bg", "prx-auth-card-bg-text", "--pr-auth-card-bg", "prx-clear-auth-card-bg");
+  wireOptionalColor("prx-auth-submit", "prx-auth-submit-text", "--pr-auth-submit", "prx-clear-auth-submit");
 
   ["white_label", "logo_url", "favicon_url", "font_heading", "font_body", "font_mono"].forEach(function (key) {
     var id = "prx-" + key.replace(/_/g, "-");
@@ -729,3 +993,4 @@
   });
 })();
 </script>
+@endsection

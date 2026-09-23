@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;550;600;650;700&family=Sora:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;550;600;650;700&family=Sora:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"></noscript>
 
-<link rel="stylesheet" href="{webroot/public}/css/theme.css?v=1789200010{timestamp}" id="primus-theme">
+<link rel="stylesheet" href="{webroot/public}/css/theme.css?v=1789200030{timestamp}" id="primus-theme">
 <link rel="stylesheet" href="{webroot/public}/css/tokens.css?v=1789200005{timestamp}" id="primus-tokens">
 <link rel="stylesheet" href="{webroot/public}/css/primitives.css?v=1789200020{timestamp}" id="primus-primitives">
 <link rel="stylesheet" href="{webroot/public}/css/shell.css?v=1789200008{timestamp}" id="primus-shell">

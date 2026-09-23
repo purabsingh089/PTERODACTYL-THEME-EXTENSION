@@ -111,7 +111,7 @@ class SettingsController extends Controller
 
         // ── appearance (single group key) ──
         if (isset($data['appearance']) && is_array($data['appearance'])) {
-            $allowed = ['theme', 'vibrance', 'radius', 'shadow', 'white_label', 'logo_url', 'favicon_url', 'font_heading', 'font_body', 'font_mono'];
+            $allowed = ['theme', 'vibrance', 'radius', 'shadow', 'white_label', 'logo_url', 'favicon_url', 'font_heading', 'font_body', 'font_mono', 'layout', 'sidebar_collapsed', 'container', 'power_position'];
             $appearance = $this->appearance();
             foreach ($data['appearance'] as $key => $value) {
                 if (!in_array($key, $allowed, true)) {
@@ -220,6 +220,10 @@ class SettingsController extends Controller
             'font_heading' => '',
             'font_body' => '',
             'font_mono' => '',
+            'layout' => 'sidebar',
+            'sidebar_collapsed' => false,
+            'container' => 'flush',
+            'power_position' => 'sidebar',
         ];
 
         return array_merge($defaults, (array) ThemeSetting::get('appearance', []));

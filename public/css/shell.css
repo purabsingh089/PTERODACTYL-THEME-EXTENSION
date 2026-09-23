@@ -567,6 +567,33 @@ html[data-primus-layout="sidebar"] .pr-toasts { right: var(--pr-shell-gap); }
   color: var(--pr-text-muted);
 }
 .pr-editor__pills { display: flex; flex-wrap: wrap; gap: var(--pr-space-2); }
+.pr-editor__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--pr-space-2);
+}
+.pr-editor__swatch {
+  display: flex;
+  align-items: center;
+  gap: var(--pr-space-1);
+}
+.pr-editor__swatch input.pr-color-swatch {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--pr-border);
+  border-radius: var(--pr-radius-sm);
+  cursor: pointer;
+  padding: 0;
+  background: none;
+}
+.pr-editor__swatch span {
+  font-size: var(--pr-text-xs);
+  color: var(--pr-text-secondary);
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .pr-editor__grid { grid-template-columns: repeat(3, 1fr); }
+}
 
 html[data-primus-layout="sidebar"][data-primus-sidebar="collapsed"] #NavigationBar #logo > a .pr-logo-text {
   display: none !important;

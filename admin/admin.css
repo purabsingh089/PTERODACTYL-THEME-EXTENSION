@@ -5,8 +5,15 @@
    so the blueprints admin extension page remains fully styled too.
    ───────────────────────────────────────────────────────────────────────── */
 
+/* Page backgrounds use real selectors + !important: this Pterodactyl build
+   paints `body{background:#fff}` and `.content-wrapper{background-color:#ecf0f5}`
+   in the patched AdminLTE bundle, which beats zero-specificity :where() rules. */
+body,
+.content-wrapper {
+  background: var(--pr-page) !important;
+}
+
 :where(body), :where(.content-wrapper) {
-  background: var(--pr-page);
   color: var(--pr-text-primary);
   font-family: var(--pr-font-ui);
 }
@@ -118,6 +125,90 @@ body {
   box-shadow: var(--pr-shadow-1) !important;
 }
 .info-box-icon { border-radius: var(--pr-radius-lg) 0 0 var(--pr-radius-lg); }
+
+/* ── node allocated circular gauges ───────────────────────────────────── */
+.info-box.pr-gauge-card {
+  background: var(--pr-surface) !important;
+  border: 1px solid var(--pr-border) !important;
+  box-shadow: var(--pr-shadow-1) !important;
+  min-height: 0 !important;
+  display: block !important;
+  overflow: hidden;
+}
+.info-box.pr-gauge-card .info-box-icon,
+.info-box.pr-gauge-card .progress,
+.info-box.pr-gauge-card > .info-box-content > .info-box-text,
+.info-box.pr-gauge-card > .info-box-content > .info-box-number {
+  display: none !important;
+}
+.info-box.pr-gauge-card .info-box-content {
+  padding: 18px 16px 16px !important;
+  margin-left: 0 !important;
+}
+.pr-gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.pr-gauge__ring {
+  position: relative;
+  width: 118px;
+  height: 118px;
+}
+.pr-gauge__svg {
+  width: 118px;
+  height: 118px;
+  transform: rotate(-90deg);
+  display: block;
+  filter: drop-shadow(0 0 10px var(--pr-accent-weak));
+}
+.pr-gauge__track,
+.pr-gauge__arc {
+  fill: none;
+  stroke-width: 9;
+  stroke-linecap: round;
+}
+.pr-gauge__track {
+  stroke: var(--pr-surface-sunken);
+}
+.pr-gauge__arc {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 700ms var(--pr-ease);
+}
+.pr-gauge__arc--ok { stroke: var(--pr-accent); }
+.pr-gauge__arc--warn { stroke: var(--pr-warning); }
+.pr-gauge__arc--danger { stroke: var(--pr-danger); }
+.pr-gauge-card--mem .pr-gauge__arc--ok { stroke: var(--pr-info); }
+.pr-gauge-card--disk .pr-gauge__arc--ok { stroke: var(--pr-accent); }
+.pr-gauge__center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pr-gauge__pct {
+  font-family: var(--pr-font-display);
+  font-weight: var(--pr-font-weight-bold);
+  font-size: 22px;
+  color: var(--pr-text-primary);
+  letter-spacing: -0.02em;
+}
+.pr-gauge__meta { text-align: center; }
+.pr-gauge__label {
+  font-size: 11px;
+  font-weight: var(--pr-font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pr-text-muted);
+}
+.pr-gauge__amount {
+  margin-top: 4px;
+  font-family: var(--pr-font-mono);
+  font-size: 12px;
+  color: var(--pr-text-secondary);
+}
 
 /* ── buttons ──────────────────────────────────────────────────────────── */
 .btn {
@@ -313,7 +404,7 @@ body * { scrollbar-width: thin; scrollbar-color: var(--pr-scrollbar-thumb) trans
   width: 14px; height: 14px; border-radius: 50%; background: #edeff7;
   transition: left .18s ease;
 }
-.prx-switch input:checked + .prx-switch__track { background: #6d5df6; }
+.prx-switch input:checked + .prx-switch__track { background: var(--pr-accent, #0050b8); }
 .prx-switch input:checked + .prx-switch__track::after { left: 17px; }
 .prx-audit__title { font-size: 15px; margin: 26px 0 10px; }
 .prx-audit-table { width: 100%; border-collapse: collapse; font-size: 12px; }

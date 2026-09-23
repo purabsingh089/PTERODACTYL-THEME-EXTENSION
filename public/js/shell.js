@@ -44,6 +44,7 @@
   var LS_LAYOUT = "primus:shell:layout";
   var LS_CONTAINER = "primus:shell:container";
   var LS_POWER = "primus:shell:power";
+  var LS_SURFACE = "primus:shell:surface";
 
   function store(key, value) {
     try {
@@ -262,6 +263,64 @@
     return wrap;
   }
 
+  /* ── surface color pickers ────────────────────────────────────── */
+  var SURFACES = [
+    { key: "--pr-page", label: "Page", ls: "primus:surface:page" },
+    { key: "--pr-surface", label: "Surface", ls: "primus:surface:surface" },
+    { key: "--pr-surface-raised", label: "Raised", ls: "primus:surface:raised" },
+    { key: "--pr-surface-sunken", label: "Sunken", ls: "primus:surface:sunken" },
+    { key: "--pr-accent", label: "Accent", ls: "primus:surface:accent" },
+    { key: "--pr-text-primary", label: "Text primary", ls: "primus:surface:textprimary" },
+    { key: "--pr-text-secondary", label: "Text secondary", ls: "primus:surface:textsecondary" },
+    { key: "--pr-border", label: "Border", ls: "primus:surface:border" },
+  ];
+
+  function rgbToHex(rgb) {
+    var m = String(rgb || "").match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    if (!m) return "";
+    return "#" + [Number(m[1]), Number(m[2]), Number(m[3])].map(function (c) {
+      return c.toString(16).padStart(2, "0");
+    }).join("");
+  }
+
+  function surfaceTab() {
+    var wrap = document.createElement("div");
+    wrap.className = "pr-editor__field";
+    var lab = document.createElement("label");
+    lab.textContent = "Surfaces";
+    wrap.appendChild(lab);
+    var grid = document.createElement("div");
+    grid.className = "pr-editor__grid";
+    SURFACES.forEach(function (s) {
+      var row = document.createElement("div");
+      row.className = "pr-editor__swatch";
+      var inp = document.createElement("input");
+      inp.type = "color";
+      inp.setAttribute("data-pr-surface", s.key);
+      inp.setAttribute("aria-label", s.label);
+      inp.className = "pr-color-swatch";
+      var cur = store(s.ls);
+      if (!cur || !/^#[0-9a-fA-F]{6}$/.test(cur)) {
+        var cs = getComputedStyle(document.documentElement).getPropertyValue(s.key).trim();
+        cur = cs && /^#[0-9a-fA-F]{6}$/.test(cs) ? cs : rgbToHex(cs);
+      }
+      if (cur && /^#[0-9a-fA-F]{6}$/.test(cur)) inp.value = cur;
+      var lbl = document.createElement("span");
+      lbl.textContent = s.label;
+      row.appendChild(inp);
+      row.appendChild(lbl);
+      inp.addEventListener("input", function () {
+        var v = this.value;
+        if (!/^#[0-9a-fA-F]{6}$/.test(v)) return;
+        P.util.css(s.key, v);
+        store(s.ls, v);
+      });
+      grid.appendChild(row);
+    });
+    wrap.appendChild(grid);
+    return wrap;
+  }
+
   function mountEditor() {
     if (document.querySelector(".pr-editor")) return;
     if (document.body.classList.contains("pr-auth")) return;
@@ -304,6 +363,7 @@
       { value: "header", label: "In page" },
       { value: "floating", label: "Floating" },
     ], document.documentElement.getAttribute("data-primus-power") || "sidebar"));
+    body.appendChild(surfaceTab());
     panel.appendChild(body);
 
     function open() { panel.removeAttribute("hidden"); }
