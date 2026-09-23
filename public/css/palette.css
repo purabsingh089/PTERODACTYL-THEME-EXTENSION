@@ -4,8 +4,8 @@
 
 .pr-palette-mask {
   position: fixed; inset: 0; z-index: 110;
-  background: rgba(5, 6, 14, 0.55);
-  backdrop-filter: blur(6px);
+  background: color-mix(in srgb, var(--pr-page) 72%, transparent);
+  backdrop-filter: blur(10px) saturate(1.1);
   display: flex; align-items: flex-start; justify-content: center;
   padding-top: 12vh;
   animation: pr-fade-in var(--pr-dur-1) var(--pr-ease) both;
@@ -13,7 +13,7 @@
 .pr-palette {
   width: min(620px, 92vw);
   background: var(--pr-surface);
-  border: 1px solid var(--pr-border-strong);
+  border: 1px solid var(--pr-border);
   border-radius: var(--pr-radius-xl);
   box-shadow: var(--pr-shadow-5);
   overflow: hidden;
@@ -77,44 +77,40 @@
 }
 .pr-palette__footer span:first-child { margin-left: auto; }
 
-/* ── keyboard shortcuts overlay ── */
-.pr-kbd-mask {
+/* ── keyboard shortcuts overlay (not .pr-kbd — that is the primitive) ── */
+.pr-shortcuts-mask {
   position: fixed; inset: 0; z-index: 115;
-  background: rgba(5, 6, 14, 0.55);
-  backdrop-filter: blur(6px);
+  background: color-mix(in srgb, var(--pr-page) 72%, transparent);
+  backdrop-filter: blur(10px) saturate(1.1);
   display: flex; align-items: center; justify-content: center;
 }
-.pr-kbd {
+.pr-shortcuts {
   width: min(460px, 92vw);
   background: var(--pr-surface);
-  border: 1px solid var(--pr-border-strong);
+  border: 1px solid var(--pr-border);
   border-radius: var(--pr-radius-xl);
   box-shadow: var(--pr-shadow-5);
   overflow: hidden;
 }
-.pr-kbd__head {
+.pr-shortcuts__head {
   display: flex; align-items: center; justify-content: space-between;
   padding: var(--pr-space-4) var(--pr-space-5);
-  border-bottom: 1px solid var(--pr-border);
+  border-bottom: 1px solid var(--pr-border-weak);
   font-family: var(--pr-font-display);
   font-weight: var(--pr-font-weight-bold);
   font-size: var(--pr-text-md);
+  color: var(--pr-text-primary);
 }
-.pr-kbd__head button {
-  background: none; border: 0; color: var(--pr-text-muted);
-  font-size: 20px; cursor: pointer; padding: 0 6px; border-radius: var(--pr-radius-sm);
-}
-.pr-kbd__head button:hover { color: var(--pr-text-primary); background: var(--pr-surface-sunken); }
-.pr-kbd__list { list-style: none; margin: 0; padding: var(--pr-space-2) var(--pr-space-4) var(--pr-space-4); }
-.pr-kbd__list li {
+.pr-shortcuts__list { list-style: none; margin: 0; padding: var(--pr-space-2) var(--pr-space-4) var(--pr-space-4); }
+.pr-shortcuts__list li {
   display: flex; align-items: center; justify-content: space-between;
   padding: var(--pr-space-3) var(--pr-space-2);
   color: var(--pr-text-secondary); font-size: var(--pr-text-sm);
-  border-bottom: 1px solid var(--pr-border);
+  border-bottom: 1px solid var(--pr-border-weak);
 }
-.pr-kbd__list li:last-child { border-bottom: 0; }
-.pr-kbd__keys { display: inline-flex; gap: 4px; }
-.pr-kbd__keys kbd, .pr-footer__hint kbd, .pr-searchwrap kbd + kbd {
+.pr-shortcuts__list li:last-child { border-bottom: 0; }
+.pr-shortcuts__keys { display: inline-flex; gap: 4px; }
+.pr-shortcuts__keys kbd, .pr-footer__hint kbd, .pr-searchwrap kbd + kbd {
   font-family: var(--pr-font-mono); font-size: 11px;
   border: 1px solid var(--pr-border-strong);
   border-bottom-width: 2px;

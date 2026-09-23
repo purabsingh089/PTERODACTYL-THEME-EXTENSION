@@ -12,13 +12,13 @@
 
 <link rel="stylesheet" href="{webroot/public}/css/theme.css?v=1789200010{timestamp}" id="primus-theme">
 <link rel="stylesheet" href="{webroot/public}/css/tokens.css?v=1789200005{timestamp}" id="primus-tokens">
-<link rel="stylesheet" href="{webroot/public}/css/primitives.css?v=1789200005{timestamp}" id="primus-primitives">
+<link rel="stylesheet" href="{webroot/public}/css/primitives.css?v=1789200020{timestamp}" id="primus-primitives">
 <link rel="stylesheet" href="{webroot/public}/css/shell.css?v=1789200008{timestamp}" id="primus-shell">
 <link rel="stylesheet" href="{webroot/public}/css/animations.css?v=1788700901{timestamp}" id="primus-animations">
-<link rel="stylesheet" href="{webroot/public}/css/widgets.css?v=1789200011{timestamp}" id="primus-widgets">
-<link rel="stylesheet" href="{webroot/public}/css/palette.css?v=1789200011{timestamp}" id="primus-palette">
-<link rel="stylesheet" href="{webroot/public}/css/motd.css?v=1789200011{timestamp}" id="primus-motd">
-<link rel="stylesheet" href="{webroot/public}/css/addons.css?v=1789200011{timestamp}" id="primus-addons">
+<link rel="stylesheet" href="{webroot/public}/css/widgets.css?v=1789200020{timestamp}" id="primus-widgets">
+<link rel="stylesheet" href="{webroot/public}/css/palette.css?v=1789200020{timestamp}" id="primus-palette">
+<link rel="stylesheet" href="{webroot/public}/css/motd.css?v=1789200020{timestamp}" id="primus-motd">
+<link rel="stylesheet" href="{webroot/public}/css/addons.css?v=1789200020{timestamp}" id="primus-addons">
 
 <script>
   window.__primus = {
@@ -43,9 +43,9 @@
 <script src="{webroot/public}/js/ai-fixer.js?v=1788700901{timestamp}" defer></script>
 <script src="{webroot/public}/js/ai-optimizer.js?v=1788700901{timestamp}" defer></script>
 <script src="{webroot/public}/js/command-palette.js?v=1788700901{timestamp}" defer></script>
-<script src="{webroot/public}/js/shortcuts.js?v=1788700901{timestamp}" defer></script>
+<script src="{webroot/public}/js/shortcuts.js?v=1789200020{timestamp}" defer></script>
 <script src="{webroot/public}/js/motd.js?v=1788700901{timestamp}" defer></script>
 <script src="{webroot/public}/js/addons.js?v=1789100007{timestamp}" defer></script>
 <script src="{webroot/public}/js/file-trash.js?v=1789200010{timestamp}" defer></script>
 <script src="{webroot/public}/js/console-upgrade.js?v=1789100004{timestamp}" defer></script>
-<link rel="stylesheet" href="{webroot/public}/css/file-trash.css?v=1789200010{timestamp}">
+<link rel="stylesheet" href="{webroot/public}/css/file-trash.css?v=1789200020{timestamp}">

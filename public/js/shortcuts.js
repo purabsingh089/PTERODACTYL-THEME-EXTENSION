@@ -77,23 +77,23 @@
   }
 
   function overlay() {
-    var existing = U.q(".pr-kbd-mask");
+    var existing = U.q(".pr-shortcuts-mask");
     if (existing) { existing.remove(); return; }
     var rows = SHORTCUTS.map(function (s) {
-      return '<li><span>' + U.esc(s.label) + "</span><span class='pr-kbd__keys'>" + kbd(s.keys) + "</span></li>";
+      return '<li><span>' + U.esc(s.label) + "</span><span class='pr-shortcuts__keys'>" + kbd(s.keys) + "</span></li>";
     }).join("");
     var win = U.el(
       "div",
-      "pr-kbd-mask pr-fade-in",
-      '<div class="pr-kbd pr-scale-in">' +
-        '<div class="pr-kbd__head"><span>Keyboard shortcuts</span>' +
-        '<button type="button" aria-label="Close">&times;</button></div>' +
-        '<ul class="pr-kbd__list">' + rows + "</ul>" +
+      "pr-shortcuts-mask pr-fade-in",
+      '<div class="pr-shortcuts pr-scale-in">' +
+        '<div class="pr-shortcuts__head"><span>Keyboard shortcuts</span>' +
+        '<button type="button" class="pr-btn pr-btn--ghost pr-btn--icon" aria-label="Close">&times;</button></div>' +
+        '<ul class="pr-shortcuts__list">' + rows + "</ul>" +
       "</div>"
     );
     document.body.appendChild(win);
     win.addEventListener("click", function (e) {
-      if (e.target === win || e.target.closest(".pr-kbd__head button")) win.remove();
+      if (e.target === win || e.target.closest(".pr-shortcuts__head button")) win.remove();
     });
   }
 

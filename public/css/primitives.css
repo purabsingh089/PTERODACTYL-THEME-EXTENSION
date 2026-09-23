@@ -425,4 +425,5 @@
 @media (prefers-reduced-motion: reduce) {
   .pr-skeleton::after { animation: none; }
   .pr-btn:active { transform: none; }
+  .pr-btn--primary:hover { transform: none; }
 }
