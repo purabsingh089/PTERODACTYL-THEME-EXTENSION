@@ -46,6 +46,8 @@
   var LS_POWER = "primus:shell:power";
   var LS_SURFACE = "primus:shell:surface";
   var LS_PRESET = "primus:shell:preset";
+  var LS_THEME = "primus:shell:theme";
+  var LS_DENSITY = "primus:shell:density";
 
   function store(key, value) {
     try {
@@ -87,11 +89,19 @@
     var collapsed = store(LS_COLLAPSED);
     if (collapsed === null) collapsed = !!setting("appearance.sidebar_collapsed", false);
 
+    var theme = store(LS_THEME) || setting("appearance.theme", "dark");
+    if (theme !== "light" && theme !== "dark") theme = "dark";
+
+    var density = store(LS_DENSITY) || setting("appearance.density", "comfortable");
+    if (density !== "compact" && density !== "comfortable") density = "comfortable";
+
     root.setAttribute("data-primus-layout", layout);
     root.setAttribute("data-primus-container", container);
     root.setAttribute("data-primus-power", power);
     root.setAttribute("data-primus-sidebar", collapsed ? "collapsed" : "expanded");
     root.setAttribute("data-primus-drawer", store(LS_DRAWER) === true ? "open" : "closed");
+    root.setAttribute("data-primus-theme", theme);
+    root.setAttribute("data-primus-density", density);
   }
 
   /* ── label injection ──────────────────────────────────────────────── */
@@ -458,7 +468,7 @@
     panel.setAttribute("hidden", "");
     var head = document.createElement("div");
     head.className = "pr-editor__head";
-    head.innerHTML = "<strong>Layout editor</strong><span>Changes apply instantly</span>";
+    head.innerHTML = "<strong>Design editor</strong><span>Changes apply instantly</span>";
     var close = document.createElement("button");
     close.type = "button";
     close.className = "pr-btn pr-btn--ghost pr-btn--icon";
@@ -482,6 +492,14 @@
       { value: "header", label: "In page" },
       { value: "floating", label: "Floating" },
     ], document.documentElement.getAttribute("data-primus-power") || "sidebar"));
+    body.appendChild(option("Theme", LS_THEME, [
+      { value: "dark", label: "Dark" },
+      { value: "light", label: "Light" },
+    ], document.documentElement.getAttribute("data-primus-theme") || "dark"));
+    body.appendChild(option("Density", LS_DENSITY, [
+      { value: "comfortable", label: "Comfortable" },
+      { value: "compact", label: "Compact" },
+    ], document.documentElement.getAttribute("data-primus-density") || "comfortable"));
     body.appendChild(presetTab());
     body.appendChild(surfaceTab());
     panel.appendChild(body);

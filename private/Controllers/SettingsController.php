@@ -121,7 +121,13 @@ class SettingsController extends Controller
                     $appearance[$key] = in_array($value, ['dark', 'light'], true) ? $value : $appearance[$key];
                 } elseif (in_array($key, ['vibrance'], true)) {
                     $appearance[$key] = in_array($value, ['subtle', 'normal', 'vivid'], true) ? $value : $appearance[$key];
-                } elseif (in_array($key, ['white_label'], true)) {
+                } elseif (in_array($key, ['layout'], true)) {
+                    $appearance[$key] = in_array($value, ['sidebar', 'topbar'], true) ? $value : $appearance[$key];
+                } elseif (in_array($key, ['container'], true)) {
+                    $appearance[$key] = in_array($value, ['flush', 'boxed'], true) ? $value : $appearance[$key];
+                } elseif (in_array($key, ['power_position'], true)) {
+                    $appearance[$key] = in_array($value, ['sidebar', 'header', 'floating'], true) ? $value : $appearance[$key];
+                } elseif (in_array($key, ['white_label', 'sidebar_collapsed'], true)) {
                     $appearance[$key] = (bool) $value;
                 } elseif (in_array($key, ['radius', 'shadow'], true)) {
                     $appearance[$key] = is_numeric($value) ? (float) $value : $appearance[$key];
