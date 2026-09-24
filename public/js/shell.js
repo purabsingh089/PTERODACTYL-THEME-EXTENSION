@@ -45,6 +45,7 @@
   var LS_CONTAINER = "primus:shell:container";
   var LS_POWER = "primus:shell:power";
   var LS_SURFACE = "primus:shell:surface";
+  var LS_PRESET = "primus:shell:preset";
 
   function store(key, value) {
     try {
@@ -272,15 +273,131 @@
     { key: "--pr-accent", label: "Accent", ls: "primus:surface:accent" },
     { key: "--pr-text-primary", label: "Text primary", ls: "primus:surface:textprimary" },
     { key: "--pr-text-secondary", label: "Text secondary", ls: "primus:surface:textsecondary" },
-    { key: "--pr-border", label: "Border", ls: "primus:surface:border" },
   ];
+
+  var PRESETS = {
+    midnight: {
+      "--pr-page": "#06070a",
+      "--pr-surface": "#0b0d12",
+      "--pr-surface-raised": "#12151c",
+      "--pr-surface-sunken": "#040507",
+      "--pr-accent": "#0050b8",
+      "--pr-text-primary": "#f2f4f8",
+      "--pr-text-secondary": "#a7aebd",
+    },
+    aurora: {
+      "--pr-page": "#06110f",
+      "--pr-surface": "#0a1a19",
+      "--pr-surface-raised": "#122423",
+      "--pr-surface-sunken": "#06110f",
+      "--pr-accent": "#2dd4bf",
+      "--pr-text-primary": "#f2f4f8",
+      "--pr-text-secondary": "#a7aebd",
+    },
+    slate: {
+      "--pr-page": "#101216",
+      "--pr-surface": "#181b21",
+      "--pr-surface-raised": "#20242c",
+      "--pr-surface-sunken": "#101216",
+      "--pr-accent": "#38bdf8",
+      "--pr-text-primary": "#f2f4f8",
+      "--pr-text-secondary": "#a7aebd",
+    },
+    sunset: {
+      "--pr-page": "#14100e",
+      "--pr-surface": "#1e1713",
+      "--pr-surface-raised": "#2a201a",
+      "--pr-surface-sunken": "#14100e",
+      "--pr-accent": "#fb923c",
+      "--pr-text-primary": "#f2f4f8",
+      "--pr-text-secondary": "#a7aebd",
+    },
+  };
 
   function rgbToHex(rgb) {
     var m = String(rgb || "").match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
     if (!m) return "";
     return "#" + [Number(m[1]), Number(m[2]), Number(m[3])].map(function (c) {
-      return c.toString(16).padStart(2, "0");
+      var h = Number(c).toString(16);
+      return h.length === 1 ? "0" + h : h;
     }).join("");
+  }
+
+  function setToken(key, value) {
+    if (P.util && typeof P.util.css === "function") P.util.css(key, value);
+    else document.documentElement.style.setProperty(key, value);
+  }
+
+  function tokenHex(key) {
+    var probe = document.createElement("span");
+    probe.style.cssText = "position:absolute;left:-9999px;color:var(" + key + ")";
+    document.body.appendChild(probe);
+    var hex = rgbToHex(getComputedStyle(probe).color);
+    document.body.removeChild(probe);
+    return hex;
+  }
+
+  function applyStoredSurfaces() {
+    SURFACES.forEach(function (s) {
+      var cur = store(s.ls);
+      if (cur && /^#[0-9a-fA-F]{6}$/.test(cur)) setToken(s.key, cur);
+    });
+  }
+
+  function writeSurface(key, value) {
+    if (!/^#[0-9a-fA-F]{6}$/.test(value)) return;
+    setToken(key, value);
+    SURFACES.forEach(function (s) {
+      if (s.key === key) store(s.ls, value);
+    });
+    var inp = document.querySelector('.pr-color-swatch[data-pr-surface="' + key + '"]');
+    if (inp) inp.value = value;
+  }
+
+  function applyPreset(id) {
+    var map = PRESETS[id];
+    if (!map) return;
+    Object.keys(map).forEach(function (k) { writeSurface(k, map[k]); });
+    store(LS_PRESET, id);
+    each(".pr-editor__presets .pr-chip", document, function (c) {
+      c.classList.toggle("is-active", c.getAttribute("data-pr-preset") === id);
+    });
+  }
+
+  function resetSurfaces() {
+    SURFACES.forEach(function (s) {
+      try { localStorage.removeItem(s.ls); } catch (e) { /* blocked */ }
+      document.documentElement.style.removeProperty(s.key);
+    });
+    try { localStorage.removeItem(LS_PRESET); } catch (e) { /* blocked */ }
+    SURFACES.forEach(function (s) {
+      var hex = tokenHex(s.key);
+      var inp = document.querySelector('.pr-color-swatch[data-pr-surface="' + s.key + '"]');
+      if (inp && hex) inp.value = hex;
+    });
+    each(".pr-editor__presets .pr-chip", document, function (c) { c.classList.remove("is-active"); });
+  }
+
+  function presetTab() {
+    var wrap = document.createElement("div");
+    wrap.className = "pr-editor__field";
+    var lab = document.createElement("label");
+    lab.textContent = "Preset";
+    wrap.appendChild(lab);
+    var row = document.createElement("div");
+    row.className = "pr-editor__pills pr-editor__presets";
+    var current = store(LS_PRESET);
+    ["midnight", "aurora", "slate", "sunset"].forEach(function (id) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "pr-chip" + (current === id ? " is-active" : "");
+      b.setAttribute("data-pr-preset", id);
+      b.textContent = id.charAt(0).toUpperCase() + id.slice(1);
+      b.addEventListener("click", function () { applyPreset(id); });
+      row.appendChild(b);
+    });
+    wrap.appendChild(row);
+    return wrap;
   }
 
   function surfaceTab() {
@@ -300,24 +417,26 @@
       inp.setAttribute("aria-label", s.label);
       inp.className = "pr-color-swatch";
       var cur = store(s.ls);
-      if (!cur || !/^#[0-9a-fA-F]{6}$/.test(cur)) {
-        var cs = getComputedStyle(document.documentElement).getPropertyValue(s.key).trim();
-        cur = cs && /^#[0-9a-fA-F]{6}$/.test(cs) ? cs : rgbToHex(cs);
-      }
+      if (!cur || !/^#[0-9a-fA-F]{6}$/.test(cur)) cur = tokenHex(s.key);
       if (cur && /^#[0-9a-fA-F]{6}$/.test(cur)) inp.value = cur;
       var lbl = document.createElement("span");
       lbl.textContent = s.label;
       row.appendChild(inp);
       row.appendChild(lbl);
       inp.addEventListener("input", function () {
-        var v = this.value;
-        if (!/^#[0-9a-fA-F]{6}$/.test(v)) return;
-        P.util.css(s.key, v);
-        store(s.ls, v);
+        writeSurface(s.key, this.value);
+        store(LS_PRESET, "custom");
+        each(".pr-editor__presets .pr-chip", document, function (c) { c.classList.remove("is-active"); });
       });
       grid.appendChild(row);
     });
     wrap.appendChild(grid);
+    var reset = document.createElement("button");
+    reset.type = "button";
+    reset.className = "pr-btn pr-btn--ghost pr-editor__reset";
+    reset.textContent = "Reset surfaces";
+    reset.addEventListener("click", resetSurfaces);
+    wrap.appendChild(reset);
     return wrap;
   }
 
@@ -363,6 +482,7 @@
       { value: "header", label: "In page" },
       { value: "floating", label: "Floating" },
     ], document.documentElement.getAttribute("data-primus-power") || "sidebar"));
+    body.appendChild(presetTab());
     body.appendChild(surfaceTab());
     panel.appendChild(body);
 
@@ -386,6 +506,7 @@
 
   function start() {
     applyLayout();
+    applyStoredSurfaces();
     render();
     mountDrawer();
     mountEditor();

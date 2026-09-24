@@ -591,8 +591,15 @@ html[data-primus-layout="sidebar"] .pr-toasts { right: var(--pr-shell-gap); }
   color: var(--pr-text-secondary);
   white-space: nowrap;
 }
+.pr-editor__reset {
+  align-self: flex-start;
+  margin-top: var(--pr-space-1);
+  min-height: 36px;
+  padding: 0 var(--pr-space-3);
+  font-size: var(--pr-text-xs);
+}
 @media (max-width: 640px) {
-  .pr-editor__grid { grid-template-columns: repeat(3, 1fr); }
+  .pr-editor__grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 html[data-primus-layout="sidebar"][data-primus-sidebar="collapsed"] #NavigationBar #logo > a .pr-logo-text {

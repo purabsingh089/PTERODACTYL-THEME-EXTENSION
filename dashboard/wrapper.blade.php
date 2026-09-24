@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="{webroot/public}/css/theme.css?v=1789200030{timestamp}" id="primus-theme">
 <link rel="stylesheet" href="{webroot/public}/css/tokens.css?v=1789200005{timestamp}" id="primus-tokens">
 <link rel="stylesheet" href="{webroot/public}/css/primitives.css?v=1789200020{timestamp}" id="primus-primitives">
-<link rel="stylesheet" href="{webroot/public}/css/shell.css?v=1789200008{timestamp}" id="primus-shell">
+<link rel="stylesheet" href="{webroot/public}/css/shell.css?v=1789200040{timestamp}" id="primus-shell">
 <link rel="stylesheet" href="{webroot/public}/css/animations.css?v=1788700901{timestamp}" id="primus-animations">
 <link rel="stylesheet" href="{webroot/public}/css/widgets.css?v=1789200020{timestamp}" id="primus-widgets">
 <link rel="stylesheet" href="{webroot/public}/css/palette.css?v=1789200020{timestamp}" id="primus-palette">
@@ -36,7 +36,7 @@
 </script>
 
 <script src="{webroot/public}/js/theme.js?v=1788700901{timestamp}" defer></script>
-<script src="{webroot/public}/js/shell.js?v=1789200008{timestamp}" defer></script>
+<script src="{webroot/public}/js/shell.js?v=1789200040{timestamp}" defer></script>
 <script src="{webroot/public}/js/widgets.js?v=1789200005{timestamp}" defer></script>
 <script src="{webroot/public}/js/resource-graphs.js?v=1789200005{timestamp}" defer></script>
 <script src="{webroot/public}/js/server-cards.js?v=1788700901{timestamp}" defer></script>
