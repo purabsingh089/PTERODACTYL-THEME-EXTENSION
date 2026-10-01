@@ -7,6 +7,8 @@ use Pterodactyl\Models\User;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models\AddonAudit;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models\AiRequestLog;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models\ThemeSetting;
+use Pterodactyl\Exceptions\Http\Connection\DaemonConnectionException;
+use Pterodactyl\Repositories\Wings\DaemonFileRepository;
 
 /**
  * Shared guards + helpers for the AI controllers. Kept in the controller
@@ -14,6 +16,10 @@ use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Models\ThemeSetting;
  */
 final class Shared
 {
+    public const EGG_FAMILY = '/(vanilla|paper|purpur|spigot|fabric|forge|spoon|quilt|minecraft)/i';
+    public const EGG_EXCLUDE = '/bedrock/i';
+    public const JAVA_MARKER = '/^(server-port|level-name|online-mode|max-players|view-distance|motd|server-ip)[[:space:]]*=/m';
+
     /**
      * Resolve a server that the acting user is actually allowed to touch:
      * ownership, subuser membership or root admin. Returns null otherwise.
@@ -118,5 +124,74 @@ final class Shared
             'command' => '',
             'config_change' => '',
         ];
+    }
+
+    public static function hasPerm(User $user, Server $server, string $perm): bool
+    {
+        if ($user->root_admin || $server->owner_id === $user->id) {
+            return true;
+        }
+        $subuser = $server->subusers()->where('user_id', $user->id)->first();
+
+        return in_array($perm, (array) ($subuser?->permissions ?? []), true);
+    }
+
+    public static function fileRepo(Server $server): DaemonFileRepository
+    {
+        return app(DaemonFileRepository::class)->setServer($server);
+    }
+
+    public static function eggMatches(string $eggName): bool
+    {
+        $name = mb_strtolower($eggName);
+
+        return preg_match(self::EGG_FAMILY, $name) === 1
+            && preg_match(self::EGG_EXCLUDE, $name) === 0;
+    }
+
+    public static function isJava(string $eggName, string $properties): bool
+    {
+        return self::eggMatches($eggName) && preg_match(self::JAVA_MARKER, $properties) === 1;
+    }
+
+    /**
+     * @return array{0: ?string, 1: ?\Illuminate\Http\JsonResponse} properties or null, error response or null
+     */
+    public static function readProperties(Server $server): array
+    {
+        try {
+            return [self::fileRepo($server)->getContent('server.properties'), null];
+        } catch (DaemonConnectionException $e) {
+            if ($e->getStatusCode() === 404) {
+                return [null, null];
+            }
+            $e->report();
+
+            return [null, response()->json(['error' => 'Could not reach the Wings daemon for this node.'], 502)];
+        }
+    }
+
+    public static function filePerms(User $user, Server $server): array
+    {
+        return [
+            'canUpdate' => self::hasPerm($user, $server, 'file.update'),
+            'canCreate' => self::hasPerm($user, $server, 'file.create'),
+            'canDelete' => self::hasPerm($user, $server, 'file.delete'),
+        ];
+    }
+
+    /**
+     * Replace or append a single KEY=value line. All other bytes stay identical.
+     */
+    public static function writePropLine(string $content, string $key, string $value): string
+    {
+        $newLine = $key . '=' . $value;
+        $pattern = '/^' . preg_quote($key, '/') . '=[^\r\n]*/m';
+        if (preg_match($pattern, $content)) {
+            return (string) preg_replace_callback($pattern, fn () => $newLine, $content, 1);
+        }
+        $prefix = $content !== '' && substr($content, -1) !== "\n" ? "\n" : '';
+
+        return $content . $prefix . $newLine . "\n";
     }
 }

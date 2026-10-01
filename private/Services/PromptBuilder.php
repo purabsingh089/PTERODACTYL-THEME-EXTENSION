@@ -64,6 +64,72 @@ PROMPT;
         ];
     }
 
+    public function aimotdMessages(string $prompt, ?array $context): array
+    {
+        $system = <<<'PROMPT'
+You are the AI MOTD writer of a Minecraft server hosting panel.
+Write a single-line Java Minecraft MOTD using legacy section-sign codes (§0-§f, §l, §o, §n, §m, §k, §r).
+Rules:
+- STRICT JSON only, no markdown fences: { "motd": "<string>", "style": "<one word>" }
+- Visible characters after stripping § codes MUST be 1–59.
+- No control characters, no backslashes, no newlines, no JSON MOTD objects.
+- Tasteful, not spammy. Do not invent server IPs or URLs.
+PROMPT;
+        $user = "Server context:\n" . $this->contextBlock($context) .
+            "\n\nOwner request (may be empty — invent a tasteful SMP MOTD):\n" .
+            ($prompt === '' ? '(none)' : $prompt);
+
+        return [
+            ['role' => 'system', 'content' => $system],
+            ['role' => 'user', 'content' => $user],
+        ];
+    }
+
+    /**
+     * @param  array<int, array{name?:string, nest?:string}>  $eggs
+     */
+    public function builderMessages(string $prompt, array $eggs): array
+    {
+        $lines = [];
+        foreach ($eggs as $egg) {
+            $name = trim((string) ($egg['name'] ?? ''));
+            if ($name === '') {
+                continue;
+            }
+            $nest = trim((string) ($egg['nest'] ?? ''));
+            $lines[] = '- ' . $name . ($nest !== '' ? ' [nest: ' . $nest . ']' : '');
+        }
+        $catalog = $lines !== [] ? implode("\n", $lines) : '(no eggs installed on this panel)';
+
+        $system = <<<'PROMPT'
+You are the AI Server Builder of a Pterodactyl game-server panel.
+Turn the owner's request into a create-server specification. Rules:
+- STRICT JSON only, no markdown fences, using exactly these keys:
+  {
+    "name": "<1-191 chars>",
+    "description": "<short, may be empty>",
+    "game": "<short keyword matching an installed egg: paper, minecraft, vanilla, rust, ...>",
+    "memory": <integer megabytes>,
+    "disk": <integer megabytes>,
+    "cpu": <integer percent, 0 means unlimited>,
+    "swap": 0,
+    "start_on_completion": false,
+    "summary": "<one sentence of what you chose and why>"
+  }
+- game MUST correspond to one of the installed eggs listed in the user message.
+- Prefer conservative resources: memory 512-2048, disk 2048-8192, cpu 0-100 unless the owner asked for more.
+- Never invent eggs, nodes, IPs, or allocations.
+- If the request is not a game server, still pick the closest egg and say so in summary.
+PROMPT;
+
+        $user = "Installed eggs:\n" . $catalog . "\n\nOwner request:\n" . $prompt;
+
+        return [
+            ['role' => 'system', 'content' => $system],
+            ['role' => 'user', 'content' => $user],
+        ];
+    }
+
     protected function contextBlock(?array $context): string
     {
         if (empty($context)) {

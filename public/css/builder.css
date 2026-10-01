@@ -1,0 +1,108 @@
+/*
+ * Primus · builder.css
+ * AI Server Builder overlay on the client dashboard.
+ */
+
+.pr-builder-fab {
+  position: fixed;
+  right: var(--pr-space-5);
+  bottom: var(--pr-space-5);
+  z-index: 80;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 16px 0 12px;
+  border: 1px solid var(--pr-border);
+  border-radius: var(--pr-radius-pill);
+  background: var(--pr-surface-raised);
+  color: var(--pr-text-primary);
+  font-family: var(--pr-font-ui);
+  font-size: var(--pr-text-sm);
+  font-weight: var(--pr-font-weight-medium);
+  box-shadow: var(--pr-shadow-3);
+  cursor: pointer;
+}
+.pr-builder-fab svg { width: 18px; height: 18px; color: var(--pr-accent-text); }
+.pr-builder-fab:hover {
+  border-color: var(--pr-accent);
+  box-shadow: var(--pr-shadow-4), var(--pr-shadow-accent);
+}
+.pr-builder-fab:focus-visible { outline: 2px solid var(--pr-accent); outline-offset: 2px; }
+
+.pr-builder-mask {
+  position: fixed; inset: 0; z-index: 96;
+  background: color-mix(in srgb, var(--pr-page) 72%, transparent);
+  backdrop-filter: blur(10px) saturate(1.15);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 7vh var(--pr-space-4) var(--pr-space-4);
+  overflow-y: auto;
+}
+html[data-primus-layout="sidebar"] .pr-builder-mask {
+  padding-left: calc(var(--pr-sidebar-current) + var(--pr-space-4));
+}
+
+.pr-builder-card {
+  width: 100%; max-width: 640px;
+  background: var(--pr-surface);
+  border: 1px solid var(--pr-border);
+  border-radius: var(--pr-radius-xl);
+  box-shadow: var(--pr-shadow-5);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+.pr-builder-head {
+  display: flex; align-items: center; gap: var(--pr-space-3);
+  padding: var(--pr-space-4) var(--pr-space-5);
+  border-bottom: 1px solid var(--pr-border-weak);
+}
+.pr-builder-title {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: var(--pr-text-md); font-weight: var(--pr-font-weight-bold);
+  color: var(--pr-text-primary); font-family: var(--pr-font-display);
+}
+.pr-builder-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--pr-accent); box-shadow: var(--pr-shadow-accent);
+}
+.pr-builder-close {
+  margin-left: auto; background: none; border: 0;
+  font-size: 20px; line-height: 1; color: var(--pr-text-muted);
+  cursor: pointer; padding: 8px 10px; min-width: 44px; min-height: 44px;
+  border-radius: var(--pr-radius-sm);
+}
+.pr-builder-close:hover { color: var(--pr-text-primary); background: var(--pr-surface-sunken); }
+.pr-builder-close:focus-visible { outline: 2px solid var(--pr-accent); outline-offset: 2px; }
+
+.pr-builder-body { padding: var(--pr-space-5); display: flex; flex-direction: column; gap: var(--pr-space-4); }
+.pr-builder-lede { margin: 0; color: var(--pr-text-secondary); font-size: var(--pr-text-sm); line-height: 1.5; }
+.pr-builder-error {
+  padding: var(--pr-space-3) var(--pr-space-4);
+  border-radius: var(--pr-radius-md);
+  background: var(--pr-danger-weak, color-mix(in srgb, var(--pr-danger) 16%, transparent));
+  color: var(--pr-danger);
+  font-size: var(--pr-text-sm);
+}
+.pr-builder-actions { display: flex; flex-wrap: wrap; gap: var(--pr-space-3); justify-content: flex-end; }
+.pr-builder-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--pr-space-3); }
+.pr-builder-spec {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--pr-space-3);
+  padding: var(--pr-space-4);
+  background: var(--pr-surface-sunken);
+  border: 1px solid var(--pr-border-weak);
+  border-radius: var(--pr-radius-lg);
+}
+.pr-builder-spec dt { font-size: var(--pr-text-xs); color: var(--pr-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.pr-builder-spec dd { margin: 2px 0 0; color: var(--pr-text-primary); font-size: var(--pr-text-sm); font-weight: var(--pr-font-weight-medium); }
+.pr-builder-summary { grid-column: 1 / -1; color: var(--pr-text-secondary); font-size: var(--pr-text-sm); line-height: 1.5; margin: 0; }
+
+@media (max-width: 640px) {
+  .pr-builder-row, .pr-builder-spec { grid-template-columns: 1fr; }
+  .pr-builder-fab span { display: none; }
+  .pr-builder-fab { width: 44px; padding: 0; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pr-builder-fab, .pr-builder-card { transition: none; }
+}

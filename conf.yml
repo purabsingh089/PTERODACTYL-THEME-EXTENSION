@@ -6,7 +6,7 @@
 info:
   name: "Primus"
   identifier: "primus"
-  description: "A premium AI-powered theme for Pterodactyl. Design-token driven client & admin restyle, live customizer with presets, command palette, and AI server diagnostics powered by monkeycode-ai.net."
+  description: "A premium AI-powered theme for Pterodactyl. Design-token driven client & admin restyle, live customizer with presets, command palette, AI diagnostics, and a prompt-to-server builder."
   version: "v1.0.0"
   target: "beta-2026-08"
   author: "MonkeyCode AI"

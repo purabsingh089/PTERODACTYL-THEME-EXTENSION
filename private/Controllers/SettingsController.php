@@ -43,6 +43,7 @@ class SettingsController extends Controller
             'ai' => [
                 'fixer_enabled' => (bool) ThemeSetting::get('ai.fixer_enabled', true),
                 'optimizer_enabled' => (bool) ThemeSetting::get('ai.optimizer_enabled', true),
+                'builder_enabled' => (bool) ThemeSetting::get('ai.builder_enabled', true),
                 'models' => [
                     'fix' => (string) ThemeSetting::get('ai.models.fix', ''),
                     'optimize' => (string) ThemeSetting::get('ai.models.optimize', ''),
@@ -111,7 +112,7 @@ class SettingsController extends Controller
 
         // ── appearance (single group key) ──
         if (isset($data['appearance']) && is_array($data['appearance'])) {
-            $allowed = ['theme', 'vibrance', 'radius', 'shadow', 'white_label', 'logo_url', 'favicon_url', 'font_heading', 'font_body', 'font_mono', 'layout', 'sidebar_collapsed', 'container', 'power_position'];
+            $allowed = ['theme', 'vibrance', 'radius', 'shadow', 'white_label', 'logo_url', 'favicon_url', 'font_heading', 'font_body', 'font_mono', 'layout', 'sidebar_collapsed', 'container', 'power_position', 'density', 'card_scale', 'hide_stock_copyright'];
             $appearance = $this->appearance();
             foreach ($data['appearance'] as $key => $value) {
                 if (!in_array($key, $allowed, true)) {
@@ -127,8 +128,14 @@ class SettingsController extends Controller
                     $appearance[$key] = in_array($value, ['flush', 'boxed'], true) ? $value : $appearance[$key];
                 } elseif (in_array($key, ['power_position'], true)) {
                     $appearance[$key] = in_array($value, ['sidebar', 'header', 'floating'], true) ? $value : $appearance[$key];
-                } elseif (in_array($key, ['white_label', 'sidebar_collapsed'], true)) {
+                } elseif (in_array($key, ['density'], true)) {
+                    $appearance[$key] = in_array($value, ['comfortable', 'compact'], true) ? $value : $appearance[$key];
+                } elseif (in_array($key, ['white_label', 'sidebar_collapsed', 'hide_stock_copyright'], true)) {
                     $appearance[$key] = (bool) $value;
+                } elseif (in_array($key, ['card_scale'], true)) {
+                    if (is_numeric($value)) {
+                        $appearance[$key] = max(0.85, min(1.20, round((float) $value, 2)));
+                    }
                 } elseif (in_array($key, ['radius', 'shadow'], true)) {
                     $appearance[$key] = is_numeric($value) ? (float) $value : $appearance[$key];
                 } else {
@@ -159,7 +166,7 @@ class SettingsController extends Controller
             if (isset($ai['rate_limit_per_hour']) && is_numeric($ai['rate_limit_per_hour'])) {
                 ThemeSetting::set('ai.rate_limit_per_hour', max(1, min(500, (int) $ai['rate_limit_per_hour'])));
             }
-            foreach (['fixer_enabled', 'optimizer_enabled'] as $toggle) {
+            foreach (['fixer_enabled', 'optimizer_enabled', 'builder_enabled'] as $toggle) {
                 if (isset($ai[$toggle])) {
                     ThemeSetting::set('ai.' . $toggle, (bool) $ai[$toggle]);
                 }
@@ -230,6 +237,9 @@ class SettingsController extends Controller
             'sidebar_collapsed' => false,
             'container' => 'flush',
             'power_position' => 'sidebar',
+            'density' => 'comfortable',
+            'card_scale' => 1,
+            'hide_stock_copyright' => false,
         ];
 
         return array_merge($defaults, (array) ThemeSetting::get('appearance', []));

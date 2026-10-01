@@ -10,11 +10,11 @@
 @php
     $prxMode = (($settings['appearance']['theme'] ?? 'dark') === 'light') ? 'light' : 'dark';
     $prxPalette = $prxMode === 'light' ? [
-        '--pr-page' => '#f4f6fb',
+        '--pr-page' => '#f6f7f9',
         '--pr-surface' => '#ffffff',
         '--pr-surface-raised' => '#ffffff',
-        '--pr-surface-sunken' => '#f4f6fb',
-        '--pr-border' => '#e2e6f1',
+        '--pr-surface-sunken' => '#f6f7f9',
+        '--pr-border' => '#e2e6ee',
         '--pr-text-primary' => '#1b1e31',
         '--pr-text-secondary' => '#4c536c',
         '--pr-text-muted' => '#767d97',
@@ -22,23 +22,23 @@
         '--pr-warning' => '#d48a08',
         '--pr-danger' => '#d94053',
         '--pr-info' => '#1f7bd0',
-        '--pr-accent' => $settings['overrides']['--pr-accent'] ?? '#0050b8',
-        '--pr-accent-strong' => $settings['overrides']['--pr-accent-strong'] ?? '#1e6fe0',
+        '--pr-accent' => $settings['overrides']['--pr-accent'] ?? '#4030c0',
+        '--pr-accent-strong' => $settings['overrides']['--pr-accent-strong'] ?? '#5040d8',
     ] : [
-        '--pr-page' => '#0a0b1a',
-        '--pr-surface' => '#12142a',
-        '--pr-surface-raised' => '#1c2039',
-        '--pr-surface-sunken' => '#0a0b1a',
-        '--pr-border' => '#2a2f4a',
-        '--pr-text-primary' => '#edeff7',
-        '--pr-text-secondary' => '#aab0c8',
-        '--pr-text-muted' => '#737a99',
-        '--pr-success' => '#3ecf8e',
-        '--pr-warning' => '#f5b644',
-        '--pr-danger' => '#f45f6f',
-        '--pr-info' => '#4ea1ef',
-        '--pr-accent' => $settings['overrides']['--pr-accent'] ?? '#0050b8',
-        '--pr-accent-strong' => $settings['overrides']['--pr-accent-strong'] ?? '#1e6fe0',
+        '--pr-page' => '#0e0e30',
+        '--pr-surface' => '#1a1a50',
+        '--pr-surface-raised' => '#222260',
+        '--pr-surface-sunken' => '#101038',
+        '--pr-border' => '#2a2060',
+        '--pr-text-primary' => '#ececf8',
+        '--pr-text-secondary' => '#b8b8d8',
+        '--pr-text-muted' => '#8888b0',
+        '--pr-success' => '#6ee7a0',
+        '--pr-warning' => '#f5c542',
+        '--pr-danger' => '#f0607a',
+        '--pr-info' => '#7b6ff0',
+        '--pr-accent' => $settings['overrides']['--pr-accent'] ?? '#4030c0',
+        '--pr-accent-strong' => $settings['overrides']['--pr-accent-strong'] ?? '#5040d8',
     ];
     // Seed for the pickers: stored override when it is a valid #rrggbb,
     // otherwise the theme's token default (display only — no override is
@@ -98,7 +98,7 @@
         <button class="prx-presetcard {{ $presetId === $active_preset ? 'is-active' : '' }}"
                 data-prx-preset="{{ $presetId }}" type="button">
           <span class="prx-presetcard__swatch"
-                style="background: linear-gradient(135deg, {{ $preset['swatch']['a'] ?? '#6d5df6' }}, {{ $preset['swatch']['b'] ?? '#8577ff' }})"></span>
+                style="background: linear-gradient(135deg, {{ $preset['swatch']['a'] ?? '#4030c0' }}, {{ $preset['swatch']['b'] ?? '#5040d8' }})"></span>
           <span class="prx-presetcard__meta">
             <span class="prx-presetcard__name">{{ $preset['name'] ?? $presetId }}</span>
             <span class="prx-presetcard__sub">{{ ($preset['built_in'] ?? true) ? 'Built-in' : 'Custom' }}</span>
@@ -290,6 +290,31 @@
 
         <h3 class="prx-h">Layout</h3>
         <div class="prx-field">
+          <label>Navigation</label>
+          <select id="prx-layout">
+            <option value="sidebar">Sidebar (default)</option>
+            <option value="topbar">Top bar</option>
+          </select>
+        </div>
+        <div class="prx-field">
+          <label>Page container</label>
+          <select id="prx-container">
+            <option value="flush">Flush (default)</option>
+            <option value="boxed">Boxed</option>
+          </select>
+        </div>
+        <div class="prx-field">
+          <label>Power controls</label>
+          <select id="prx-power-position">
+            <option value="sidebar">Sticky rail (default)</option>
+            <option value="header">In page</option>
+            <option value="floating">Floating</option>
+          </select>
+        </div>
+        <div class="prx-field">
+          <label class="prx-check"><input type="checkbox" id="prx-sidebar-collapsed"> Start with sidebar collapsed</label>
+        </div>
+        <div class="prx-field">
           <label>Content density</label>
           <select id="prx-density">
             <option value="comfortable">Comfortable (default)</option>
@@ -416,6 +441,8 @@
         <div class="prx-field">
           <label class="prx-check"><input type="checkbox" id="prx-ai-fixer-enabled" {{ $settings['ai']['fixer_enabled'] ? 'checked' : '' }}> Enable AI Fixer</label>
           <label class="prx-check"><input type="checkbox" id="prx-ai-optimizer-enabled" {{ $settings['ai']['optimizer_enabled'] ? 'checked' : '' }}> Enable AI Optimizer</label>
+          <label class="prx-check"><input type="checkbox" id="prx-ai-builder-enabled" {{ ($settings['ai']['builder_enabled'] ?? true) ? 'checked' : '' }}> Enable AI Server Builder</label>
+          <small class="prx-hint">The builder is a dashboard overlay. Each user stores their own OpenAI-compatible base URL, API key and model. The provider key above stays for Fixer and Optimizer only.</small>
         </div>
         <datalist id="prx-model-list">
           @if(!empty($settings['ai']['models']['fix']))<option value="{{ $settings['ai']['models']['fix'] }}"></option>@endif
@@ -522,7 +549,12 @@
     density: defaultAppearance.density === "compact" ? "compact" : "comfortable",
     card_scale: defaultAppearance.card_scale != null && +defaultAppearance.card_scale > 0
       ? Math.max(0.85, Math.min(1.2, +defaultAppearance.card_scale)) : 1,
-    hide_stock_copyright: !!defaultAppearance.hide_stock_copyright
+    hide_stock_copyright: !!defaultAppearance.hide_stock_copyright,
+    layout: defaultAppearance.layout === "topbar" ? "topbar" : "sidebar",
+    container: defaultAppearance.container === "boxed" ? "boxed" : "flush",
+    power_position: ["sidebar", "header", "floating"].indexOf(defaultAppearance.power_position) >= 0
+      ? defaultAppearance.power_position : "sidebar",
+    sidebar_collapsed: !!defaultAppearance.sidebar_collapsed
   };
   var footer = JSON.parse(JSON.stringify(settings.footer || { enabled: true, label: "", links: [] }));
   var announcements = { text: ((settings.announcements || {}).text) || "" };
@@ -535,6 +567,7 @@
     rate_limit_per_hour: settings.ai && settings.ai.rate_limit_per_hour,
     fixer_enabled: settings.ai ? settings.ai.fixer_enabled : true,
     optimizer_enabled: settings.ai ? settings.ai.optimizer_enabled : true,
+    builder_enabled: settings.ai ? settings.ai.builder_enabled !== false : true,
     models: {
       fix: settings.ai && settings.ai.models && settings.ai.models.fix,
       optimize: settings.ai && settings.ai.models && settings.ai.models.optimize
@@ -622,6 +655,23 @@
   });
 
   // ── layout: density, card scale, stock copyright notice ──
+  function wireSelect(id, key) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.value = appearance[key];
+    el.addEventListener("change", function () { appearance[key] = el.value; markDirty(); });
+  }
+  wireSelect("prx-layout", "layout");
+  wireSelect("prx-container", "container");
+  wireSelect("prx-power-position", "power_position");
+  var collapsedEl = document.getElementById("prx-sidebar-collapsed");
+  if (collapsedEl) {
+    collapsedEl.checked = !!appearance.sidebar_collapsed;
+    collapsedEl.addEventListener("change", function () {
+      appearance.sidebar_collapsed = collapsedEl.checked;
+      markDirty();
+    });
+  }
   var densitySel = document.getElementById("prx-density");
   densitySel.value = appearance.density;
   densitySel.addEventListener("change", function () {
@@ -811,6 +861,7 @@
   }
   wireSwitch("prx-ai-fixer-enabled", function (v) { ai.fixer_enabled = v; });
   wireSwitch("prx-ai-optimizer-enabled", function (v) { ai.optimizer_enabled = v; });
+  wireSwitch("prx-ai-builder-enabled", function (v) { ai.builder_enabled = v; });
 
   if (ai.api_key_configured) {
     detectModels(true);
@@ -936,6 +987,7 @@
     }
     html += '<div class="prx-usage-foot">Rate limit: <strong>' + u.rate_limit_per_hour + '</strong> calls/user/hour · Fixer ' +
       (u.fixer_enabled ? 'enabled' : 'disabled') + ' · Optimizer ' + (u.optimizer_enabled ? 'enabled' : 'disabled') +
+      ' · Builder ' + (u.builder_enabled !== false ? 'enabled' : 'disabled') +
       (u.configured ? ' · API key configured' : ' · <span class="prx-warn">no API key configured</span>') + '</div>';
     host.innerHTML = html;
   }
@@ -968,6 +1020,7 @@
         rate_limit_per_hour: ai.rate_limit_per_hour,
         fixer_enabled: ai.fixer_enabled,
         optimizer_enabled: ai.optimizer_enabled,
+        builder_enabled: ai.builder_enabled,
         models: ai.models
       }
     };

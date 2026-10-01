@@ -37,22 +37,51 @@ class MonkeyCodeClient
      */
     public function complete(string $feature, array $messages, int $userId, ?string $serverId = null): array
     {
-        $model = $this->modelFor($feature);
+        return $this->completeWith(
+            $feature,
+            $messages,
+            $userId,
+            $serverId,
+            $this->baseUrl(),
+            $this->apiKey(),
+            $this->modelFor($feature)
+        );
+    }
+
+    /**
+     * Chat completion against an explicit OpenAI-compatible endpoint.
+     * Used by the AI Server Builder so each user can supply their own
+     * base URL, key and model without touching the global Fixer key.
+     */
+    public function completeWith(
+        string $feature,
+        array $messages,
+        int $userId,
+        ?string $serverId,
+        string $baseUrl,
+        string $apiKey,
+        string $model
+    ): array {
+        $model = trim($model);
+        if ($model === '') {
+            $model = $this->modelFor($feature);
+        }
+        $base = self::normalizeBaseUrl($baseUrl);
         $started = microtime(true);
 
         $response = null;
         $status = 'ok';
 
         try {
-            $pending = Http::withToken($this->apiKey())
+            $pending = Http::withToken($apiKey)
                 ->timeout($this->timeoutSeconds())
                 ->connectTimeout(10)
                 ->acceptJson()
-                ->post($this->baseUrl() . '/chat/completions', [
+                ->post($base . '/chat/completions', [
                     'model' => $model,
                     'messages' => $messages,
-                    'temperature' => (float) ThemeSetting::get('ai.temperature', 0.2),
-                    'max_tokens' => (int) ThemeSetting::get('ai.max_tokens', 900),
+                    'temperature' => (float) ThemeSetting::get('ai.temperature', $feature === 'builder' ? 0.3 : 0.2),
+                    'max_tokens' => (int) ThemeSetting::get('ai.max_tokens', $feature === 'builder' ? 1200 : 900),
                 ]);
 
             if ($pending->status() === 429) {
@@ -105,6 +134,8 @@ class MonkeyCodeClient
             'fix' => 'deepseek-v4-flash',
             'optimize' => 'qwen3.5-plus',
             'notes' => 'deepseek-v4-flash',
+            'aimotd' => 'deepseek-v4-flash',
+            'builder' => 'deepseek-v4-flash',
         ];
 
         $configured = trim((string) ThemeSetting::get('ai.models.' . $feature, ''));

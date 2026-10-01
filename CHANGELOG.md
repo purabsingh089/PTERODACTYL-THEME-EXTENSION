@@ -2,7 +2,92 @@
 
 ## Unreleased
 
+### Added
+- AI Server Builder (dashboard overlay): each client user stores their own
+  OpenAI-compatible base URL, API key and model, describes a server in
+  plain language, previews the matched egg and resources, then creates it
+  on the panel as owner via `ServerCreationService`. Admin toggle lives
+  on the AI tab (`ai.builder_enabled`); keys never leave the server.
+- Deeper theme customizer (Admin → Appearance): the accent-only palette is
+  expanded to the full token set — Surface (page, card, raised, sunken,
+  borders), Text (primary / secondary / muted) and Semantic (success,
+  warning, danger, info) color pickers with live preview on the admin page.
+- Optional login-page colors: override the `/auth/login` card background and
+  submit button independently of the surface/accent tokens; both stay
+  "inherit" (empty) until edited, with one-click reset-to-inherited.
+- Content density: Comfortable (default) or Compact — tighter spacing across
+  server cards, console stat cards and graphs (controls keep a 44px target).
+- Server card size slider (0.85x–1.20x): scales the hero-card banner height
+  and content padding via `--pr-card-scale` on desktop; mobile always stays
+  at 1x (enforced on resize, no `transform` scaling so the grid stays intact).
+- "Hide stock copyright notice" toggle for the login card.
+- Applying a preset still replaces custom colors; the new layout controls
+  (density, card size, copyright toggle) persist across preset application
+  and are cleared by "Reset to defaults".
+
 ### Fixed
+- Dashboard server cards in list mode overlaid the banner on the stock
+  row, so leftover CPU/RAM/DISK columns leaked through and the darker
+  game art (Rust) looked like a broken half-card. Cards now keep the
+  hero layout in both list and grid (list is a single column); stock
+  columns stay hidden as soon as a banner is attached.
+
+### Added
+- Premium `/auth/login` overlay (checkpoint, forgot, and reset too): the stock
+  white Pterodactyl card is replaced with a centered glass panel, Primus mark,
+  display heading, dark inputs, and a full-width accent Login button. CSS
+  restyles as soon as the form is in the DOM; JS injects brand copy per route.
+- Console page premium overlay: stock stat cards (Address, Uptime, CPU,
+  Memory, Disk, Network in/out) get gradient surfaces, per-metric accent
+  chips, uppercase micro labels and tabular mono values. The terminal
+  gains a window chrome (traffic lights + Live Console + status pill) and
+  the Start / Restart / Stop buttons become colored pills.
+- Dashboard hero grid: server cards use a 132px game banner, overlay status
+  chips, hover quick-actions, and CPU / RAM / DISK bars under the name.
+  Grid is the default layout (toolbar still toggles list). Stock allocation
+  and resource columns are hidden in grid mode so leftover rows no longer
+  stretch the card.
+- Mobile (<720px): the server list always renders stacked hero cards; the
+  list/grid toggle and keyboard hint hide, quick-actions and favorites stay
+  visible without hover, and leftover stock columns can never leak through.
+- Real game banner art: 19 game tiles (minecraft, rust, cs, valheim,
+  terraria, ark, gmod, arma, tf2, l4d, source, squad, unturned, dayz,
+  factorio, satisfactory, seven-days, dont-starve, zomboid) now ship official
+  capsule art as `.jpg` next to the SVG tiles; the client prefers the photo
+  when one exists. These JPEGs are copyrighted game imagery for local /
+  personal use — the original SVG tiles remain the redistributable fallback
+  and still cover the non-game types (voice, database, web, nodejs, python,
+  bot, generic, default).
+- Dashboard server cards: every server row now carries a game banner image.
+  Banners resolve automatically from the server's egg / nest name via a
+  server-side keyword map (tiles shipped under `public/img/games/`), or from
+  a custom image URL saved per server.
+- Server settings page: new "Server Card Image" box with live preview, custom
+  URL input, Save and Reset-to-auto actions. Only the server owner (or a
+  root admin) can change the image; subusers get 403.
+- Server card badges: small live CPU / memory chips on each dashboard card,
+  polled from the client resources API every 30s with offline fallback ("--").
+- Extension endpoints for the feature: `POST /server-cards/images` (batch
+  resolve) and `POST /server-cards/image` (set / clear custom image, absolute
+  http(s) URLs only — `javascript:`, `data:` and relative paths are rejected).
+- Console resource graphs: stock Chart.js canvases are hidden and replaced
+   with Primus token-driven CPU / Memory / Network (in + out) area charts in
+   the same three-column row. Live values sit in each card header; offline
+   and empty states show "—" instead of a flat zero line.
+- Admin node view: Disk Space Allocated and Memory Allocated use circular
+   gauges (percent in the ring, used/max below) instead of linear bars.
+
+### Fixed
+- Server lookup in `Shared::resolveAccessibleServer()` queried a non-existent
+  `uuid_short` column (SQL 1054), which 500'd AI Fixer / Optimizer / power
+  proxy when the console URL used the 8-character identifier. Lookup now uses
+  grouped `uuid` / `uuidShort` (the actual `servers` column).
+- Client `P.api()` CSRF helper now falls back to `meta[name="_token"]` and
+  the hidden `_token` input, matching the admin customizer. Previously only
+  `csrf-token` was read, so Diagnose / Optimize POSTs could 419.
+- `P.api()` now prefixes requests with `P.identifier` instead of a hardcoded
+  `/extensions/primus` path.
+
 - Admin panel typography: Bootstrap's admin root sets `html { font-size: 10px }`,
   which shrank the rem-based `--pr-text-*` tokens to ~62% of their intended
   size. The admin wrapper now pins the text tokens to px

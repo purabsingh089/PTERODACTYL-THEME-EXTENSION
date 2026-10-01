@@ -93,9 +93,10 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     else bad("d motd + addons tabs coexist", JSON.stringify(both));
   } catch (e) { bad("d motd + addons tabs coexist", e.message); }
 
-  /* e — Rust server: no motd tab, addons hub opens with 13 cards;
-   * plugins card clickable (admin canUse) — panel must show graceful
-   * empty/error state on Rust (no plugins dir), not a crash. */
+  /* e — Rust server: no motd tab, addons hub opens with the 7-card
+   * consolidated grid; Plugin Installer card clickable (admin canUse) —
+   * panel must show graceful empty/error state on Rust (no plugins dir),
+   * not a crash. */
   try {
     await page.goto(BASE + "/server/" + RUST, { waitUntil: "networkidle2" });
     await sleep(2200);
@@ -109,11 +110,11 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       await page.waitForSelector(".pr-addons-mask", { timeout: 5000 });
       await page.waitForSelector(".pr-addons-app", { timeout: 5000 });
       const cards = await page.$$eval(".pr-addons-app", (els) => els.length);
-      if (cards === 13) ok("e Rust hub: 13 cards");
-      else bad("e Rust hub: 13 cards", String(cards));
+      if (cards === 7) ok("e Rust hub: 7 cards (consolidated)");
+      else bad("e Rust hub: 7 cards (consolidated)", String(cards));
       const pluginsCard = await page.evaluate(() => {
         const els = Array.from(document.querySelectorAll(".pr-addons-app"));
-        const c = els.find((x) => x.textContent.indexOf("Plugin Manager") !== -1);
+        const c = els.find((x) => x.textContent.indexOf("Plugin Installer") !== -1);
         if (!c) return null;
         return { locked: c.classList.contains("is-locked") };
       });
@@ -121,13 +122,13 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       else bad("e plugins card usable for admin", JSON.stringify(pluginsCard));
       await page.evaluate(() => {
         const els = Array.from(document.querySelectorAll(".pr-addons-app"));
-        const c = els.find((x) => x.textContent.indexOf("Plugin Manager") !== -1);
+        const c = els.find((x) => x.textContent.indexOf("Plugin Installer") !== -1);
         if (c) c.click();
       });
-      await sleep(1200);
+      await sleep(1500);
       const panelState = await page.evaluate(() => {
         const empty = document.querySelector(".pr-addons-empty");
-        const rows = document.querySelectorAll(".pr-plugins-row, .pr-plugins-panel tr").length;
+        const rows = document.querySelectorAll(".pr-addons-row, .pr-plugins-panel tr").length;
         return { graceful: !!empty || rows > 0, text: empty ? empty.textContent : "" };
       });
       if (panelState.graceful) ok("e plugins panel graceful on Rust (empty state)");

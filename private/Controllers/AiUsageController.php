@@ -53,6 +53,7 @@ class AiUsageController extends Controller
             'rate_limit_per_hour' => (int) ThemeSetting::get('ai.rate_limit_per_hour', 30),
             'fixer_enabled' => (bool) ThemeSetting::get('ai.fixer_enabled', true),
             'optimizer_enabled' => (bool) ThemeSetting::get('ai.optimizer_enabled', true),
+            'builder_enabled' => (bool) ThemeSetting::get('ai.builder_enabled', true),
             'configured' => ThemeSetting::get('ai.api_key', '') !== '',
         ]);
     }
