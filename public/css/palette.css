@@ -1,0 +1,123 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Primus · Command Palette & Shortcuts Styles
+   ───────────────────────────────────────────────────────────────────────── */
+
+.pr-palette-mask {
+  position: fixed; inset: 0; z-index: 110;
+  background: color-mix(in srgb, var(--pr-page) 72%, transparent);
+  backdrop-filter: blur(10px) saturate(1.1);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding-top: 12vh;
+  animation: pr-fade-in var(--pr-dur-1) var(--pr-ease) both;
+}
+.pr-palette {
+  width: min(620px, 92vw);
+  background: var(--pr-surface);
+  border: 1px solid var(--pr-border);
+  border-radius: var(--pr-radius-xl);
+  box-shadow: var(--pr-shadow-5);
+  overflow: hidden;
+  animation: pr-scale-in var(--pr-dur-2) var(--pr-ease-spring) both;
+}
+.pr-palette__inputwrap {
+  display: flex; align-items: center; gap: var(--pr-space-3);
+  padding: var(--pr-space-4) var(--pr-space-5);
+  border-bottom: 1px solid var(--pr-border);
+}
+.pr-palette__inputwrap svg { width: 17px; height: 17px; color: var(--pr-text-muted); flex: none; }
+.pr-palette__inputwrap input {
+  flex: 1; border: 0 !important; background: transparent !important;
+  box-shadow: none !important; outline: none !important;
+  font-size: var(--pr-text-md) !important; color: var(--pr-text-primary) !important;
+}
+.pr-palette__inputwrap input::placeholder { color: var(--pr-text-faint); }
+.pr-palette__inputwrap span {
+  font-size: 10px; color: var(--pr-text-faint);
+  border: 1px solid var(--pr-border); border-radius: var(--pr-radius-xs);
+  padding: 2px 6px; flex: none;
+}
+.pr-palette__list { max-height: 52vh; overflow-y: auto; padding: var(--pr-space-2); }
+.pr-palette__group {
+  padding: var(--pr-space-2) var(--pr-space-3) var(--pr-space-1);
+  font-size: var(--pr-text-xs); text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--pr-text-faint); font-weight: var(--pr-font-weight-bold);
+}
+.pr-palette__item {
+  display: flex; align-items: center; gap: var(--pr-space-3);
+  padding: var(--pr-space-2) var(--pr-space-3);
+  border-radius: var(--pr-radius-md);
+  cursor: pointer;
+}
+.pr-palette__item.is-selected { background: var(--pr-accent-weak); }
+.pr-palette__item.is-selected .pr-palette__title { color: var(--pr-accent-text); }
+.pr-palette__icon {
+  width: 30px; height: 30px; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--pr-radius-sm);
+  background: var(--pr-surface-sunken);
+  border: 1px solid var(--pr-border);
+  color: var(--pr-text-secondary);
+}
+.pr-palette__icon svg { width: 15px; height: 15px; }
+.pr-palette__labels { display: flex; flex-direction: column; min-width: 0; }
+.pr-palette__title {
+  font-size: var(--pr-text-sm); color: var(--pr-text-primary);
+  font-weight: var(--pr-font-weight-medium);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pr-palette__sub { font-size: var(--pr-text-xs); color: var(--pr-text-faint); font-family: var(--pr-font-mono); }
+.pr-palette__enter { margin-left: auto; color: var(--pr-text-faint); font-size: 13px; opacity: 0; }
+.pr-palette__item.is-selected .pr-palette__enter { opacity: 1; color: var(--pr-accent-text); }
+.pr-palette__empty { padding: var(--pr-space-8); text-align: center; color: var(--pr-text-muted); font-size: var(--pr-text-sm); }
+.pr-palette__footer {
+  display: flex; gap: var(--pr-space-4);
+  padding: var(--pr-space-2) var(--pr-space-4);
+  border-top: 1px solid var(--pr-border);
+  font-size: var(--pr-text-xs); color: var(--pr-text-faint);
+}
+.pr-palette__footer span:first-child { margin-left: auto; }
+
+/* ── keyboard shortcuts overlay (not .pr-kbd — that is the primitive) ── */
+.pr-shortcuts-mask {
+  position: fixed; inset: 0; z-index: 115;
+  background: color-mix(in srgb, var(--pr-page) 72%, transparent);
+  backdrop-filter: blur(10px) saturate(1.1);
+  display: flex; align-items: center; justify-content: center;
+}
+.pr-shortcuts {
+  width: min(460px, 92vw);
+  background: var(--pr-surface);
+  border: 1px solid var(--pr-border);
+  border-radius: var(--pr-radius-xl);
+  box-shadow: var(--pr-shadow-5);
+  overflow: hidden;
+}
+.pr-shortcuts__head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--pr-space-4) var(--pr-space-5);
+  border-bottom: 1px solid var(--pr-border-weak);
+  font-family: var(--pr-font-display);
+  font-weight: var(--pr-font-weight-bold);
+  font-size: var(--pr-text-md);
+  color: var(--pr-text-primary);
+}
+.pr-shortcuts__list { list-style: none; margin: 0; padding: var(--pr-space-2) var(--pr-space-4) var(--pr-space-4); }
+.pr-shortcuts__list li {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--pr-space-3) var(--pr-space-2);
+  color: var(--pr-text-secondary); font-size: var(--pr-text-sm);
+  border-bottom: 1px solid var(--pr-border-weak);
+}
+.pr-shortcuts__list li:last-child { border-bottom: 0; }
+.pr-shortcuts__keys { display: inline-flex; gap: 4px; }
+.pr-shortcuts__keys kbd, .pr-footer__hint kbd, .pr-searchwrap kbd + kbd {
+  font-family: var(--pr-font-mono); font-size: 11px;
+  border: 1px solid var(--pr-border-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--pr-radius-xs);
+  padding: 2px 7px;
+  background: var(--pr-surface-sunken);
+  color: var(--pr-text-secondary);
+}
+.pr-footer__hint { margin-left: var(--pr-space-4); color: var(--pr-text-faint); }
+.pr-footer__hint kbd { margin: 0 1px; }

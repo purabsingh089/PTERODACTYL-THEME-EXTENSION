@@ -1,0 +1,93 @@
+/* Primus · file-trash.css — trash toolbar button + side panel on Files pages */
+.pr-trash-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pr-surface-raised);
+  border: 1px solid var(--pr-border-strong);
+  color: var(--pr-text-primary);
+  border-radius: var(--pr-radius-md);
+  padding: 0 var(--pr-space-4);
+  font-size: var(--pr-text-sm);
+  font-family: var(--pr-font-ui);
+  font-weight: var(--pr-font-weight-medium);
+  cursor: pointer;
+  height: 38px;
+}
+.pr-trash-btn:hover { border-color: var(--pr-accent); color: var(--pr-accent-text); }
+.pr-trash-btn:focus-visible { outline: 2px solid var(--pr-accent); outline-offset: 2px; }
+
+.pr-trash-panel {
+  position: fixed;
+  right: 18px;
+  top: 64px;
+  bottom: 18px;
+  width: 340px;
+  background: var(--pr-surface);
+  border: 1px solid var(--pr-border);
+  border-radius: var(--pr-radius-xl);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--pr-shadow-5);
+  overflow: hidden;
+}
+html[data-primus-layout="sidebar"] .pr-trash-panel {
+  top: calc(var(--pr-topbar-h) + 8px);
+}
+.pr-trash-panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--pr-space-4) var(--pr-space-5);
+  border-bottom: 1px solid var(--pr-border-weak);
+  font-weight: var(--pr-font-weight-bold);
+  font-family: var(--pr-font-display);
+  color: var(--pr-text-primary);
+}
+.pr-trash-panel__head > div { display: flex; gap: 8px; }
+.pr-trash-panel__body { flex: 1; overflow-y: auto; padding: var(--pr-space-3); }
+.pr-trash-empty, .pr-trash-close {
+  background: var(--pr-surface-raised);
+  border: 1px solid var(--pr-border);
+  color: var(--pr-text-primary);
+  border-radius: var(--pr-radius-md);
+  height: 32px;
+  padding: 0 var(--pr-space-3);
+  cursor: pointer;
+  font-size: var(--pr-text-xs);
+  font-family: var(--pr-font-ui);
+}
+.pr-trash-empty:hover { border-color: var(--pr-danger); color: var(--pr-danger); }
+.pr-trash-empty-msg { padding: 18px; text-align: center; color: var(--pr-text-muted); font-size: var(--pr-text-sm); }
+
+.pr-trash-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: var(--pr-space-3);
+  border: 1px solid var(--pr-border);
+  border-radius: var(--pr-radius-lg);
+  margin-bottom: 8px;
+  background: var(--pr-surface);
+  box-shadow: var(--pr-shadow-1);
+}
+.pr-trash-item__name { font-size: var(--pr-text-sm); font-weight: var(--pr-font-weight-medium); word-break: break-all; color: var(--pr-text-primary); }
+.pr-trash-item__meta { font-size: var(--pr-text-xs); color: var(--pr-text-muted); margin-top: 2px; }
+.pr-trash-item__acts { display: flex; gap: 6px; flex: none; }
+.pr-trash-item__restore, .pr-trash-item__destroy {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  border-radius: var(--pr-radius-md);
+  padding: 0 var(--pr-space-3);
+  font-size: var(--pr-text-xs);
+  font-family: var(--pr-font-ui);
+  cursor: pointer;
+  border: 1px solid var(--pr-border-strong);
+  background: var(--pr-surface-raised);
+  color: var(--pr-text-primary);
+}
+.pr-trash-item__restore:hover { border-color: var(--pr-accent); color: var(--pr-accent-text); }
+.pr-trash-item__destroy:hover { border-color: var(--pr-danger); color: var(--pr-danger); }

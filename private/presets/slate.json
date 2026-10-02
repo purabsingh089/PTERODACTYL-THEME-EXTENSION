@@ -1,0 +1,28 @@
+{
+  "id": "slate",
+  "name": "Slate",
+  "description": "Graphite calm: a neutral graphite scale where the accent does the talking.",
+  "built_in": true,
+  "swatch": { "a": "#38bdf8", "b": "#60a5fa" },
+  "appearance": {
+    "theme": "dark",
+    "vibrance": "subtle"
+  },
+  "overrides": {
+    "--pr-accent": "#38bdf8",
+    "--pr-accent-strong": "#60a5fa",
+    "--pr-accent-weak": "rgba(56, 189, 248, 0.14)",
+    "--pr-accent-contrast": "#06131c",
+    "--pr-bg-950": "#101216",
+    "--pr-bg-900": "#181b21",
+    "--pr-bg-800": "#20242c",
+    "--pr-page": "#101216",
+    "--pr-surface": "#181b21",
+    "--pr-surface-raised": "#20242c",
+    "--pr-surface-sunken": "#101216",
+    "--pr-surface-header": "rgba(21, 23, 29, 0.82)",
+    "--pr-border": "rgba(156, 163, 175, 0.12)",
+    "--pr-border-strong": "rgba(156, 163, 175, 0.22)",
+    "--pr-page-gradient": "radial-gradient(1200px 500px at 85% -10%, rgba(56, 189, 248, 0.10), transparent 60%), radial-gradient(900px 420px at -10% 0%, rgba(148, 163, 184, 0.06), transparent 55%)"
+  }
+}

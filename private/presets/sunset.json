@@ -1,0 +1,28 @@
+{
+  "id": "sunset",
+  "name": "Sunset",
+  "description": "Late-gold hour: warm amber and coral on a dusk-toned canvas.",
+  "built_in": true,
+  "swatch": { "a": "#fb923c", "b": "#f472b6" },
+  "appearance": {
+    "theme": "dark",
+    "vibrance": "vivid"
+  },
+  "overrides": {
+    "--pr-accent": "#fb923c",
+    "--pr-accent-strong": "#f472b6",
+    "--pr-accent-weak": "rgba(251, 146, 60, 0.15)",
+    "--pr-accent-contrast": "#261001",
+    "--pr-bg-950": "#14100e",
+    "--pr-bg-900": "#1e1713",
+    "--pr-bg-800": "#2a201a",
+    "--pr-page": "#14100e",
+    "--pr-surface": "#1e1713",
+    "--pr-surface-raised": "#2a201a",
+    "--pr-surface-sunken": "#14100e",
+    "--pr-surface-header": "rgba(27, 20, 15, 0.82)",
+    "--pr-border": "rgba(244, 164, 130, 0.12)",
+    "--pr-border-strong": "rgba(244, 164, 130, 0.22)",
+    "--pr-page-gradient": "radial-gradient(1200px 500px at 80% -10%, rgba(251, 146, 60, 0.13), transparent 60%), radial-gradient(900px 420px at -10% 0%, rgba(244, 114, 182, 0.08), transparent 55%)"
+  }
+}

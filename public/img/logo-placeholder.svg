@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 28" fill="none" role="img" aria-label="Primus theme">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1e6fe0"/>
+      <stop offset="1" stop-color="#0050b8"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="26" height="26" rx="8" fill="url(#g)"/>
+  <path d="M10 21V8.4h5a3.9 3.9 0 0 1 0 7.8h-2.8V21H10Zm3.8-11h1.2a2.3 2.3 0 0 1 0 4.6H13.8v-4.6Z" fill="#fff" fill-opacity="0.92"/>
+  <text x="33" y="20" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="650" letter-spacing="0.4" fill="currentColor">Primus</text>
+</svg>

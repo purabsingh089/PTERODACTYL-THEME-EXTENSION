@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Primus">
+  <defs>
+    <linearGradient id="p" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1e6fe0"/>
+      <stop offset="1" stop-color="#0050b8"/>
+    </linearGradient>
+    <linearGradient id="s" x1="0" y1="0" x2="0" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#d6e8ff" stop-opacity="0.9"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#p)"/>
+  <rect x="2.75" y="2.75" width="58.5" height="58.5" rx="15.25" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1.5"/>
+  <path d="M22 46V18h11.4a8.6 8.6 0 0 1 0 17.2H30.5V46H22Zm8.5-24.2H30.5v6.4h3a3.2 3.2 0 0 0 0-6.4Z" fill="url(#s)"/>
+  <path d="M39 34.5 45 46h-3.4l-1.3-2.7h-6.1L39 34.5Z" fill="#ffffff" fill-opacity="0.55"/>
+</svg>

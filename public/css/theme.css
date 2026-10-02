@@ -1,0 +1,737 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Primus · Client Panel Theme
+   Injected into the Pterodactyl React bundle via conf.yml `dashboard.css`.
+   All rules are wrapped in :where() so the token system can override them
+   from the admin customizer without specificity wars.
+   Pairing: tokens.css + animations.css are shipped through
+   dashboard/wrapper.blade.php to stay outside the React bundle.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* ── document frame ───────────────────────────────────────────────────── */
+:where(html),
+:where(body) {
+  background: var(--pr-page);
+  color: var(--pr-text-primary);
+  font-family: var(--pr-font-ui);
+  font-size: var(--pr-text-base);
+  font-weight: var(--pr-font-weight-normal);
+  letter-spacing: var(--pr-tracking-tight);
+  -webkit-font-smoothing: antialiased;
+}
+
+:where(body):before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--pr-page-gradient);
+}
+
+/* elegant scrollbars */
+:where(*) { scrollbar-width: thin; scrollbar-color: var(--pr-scrollbar-thumb) transparent; }
+:where(*::-webkit-scrollbar) { width: 10px; height: 10px; }
+:where(*::-webkit-scrollbar-thumb) {
+  background: var(--pr-scrollbar-thumb);
+  border-radius: 10px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+:where(*::-webkit-scrollbar-thumb:hover) { background-color: var(--pr-scrollbar-thumb-hover); background-clip: content-box; }
+:where(*::-webkit-scrollbar-track) { background: transparent; }
+
+/* selection */
+:where(::selection) { background: var(--pr-accent-weak); color: var(--pr-accent-text); }
+
+/* ── typography ───────────────────────────────────────────────────────── */
+:where(h1), :where(h2), :where(h3) {
+  font-family: var(--pr-font-display);
+  font-weight: var(--pr-font-weight-bold);
+  letter-spacing: var(--pr-tracking-tight);
+  color: var(--pr-text-primary);
+}
+
+/* ── cards & boxes (server list rows, feature cards) ──────────────────── */
+:where(div[class*="Card"], div[class*="Container"]):has(> div[class*="CardHeader"]) {
+  background: var(--pr-surface);
+  border: var(--pr-border-width) solid var(--pr-border);
+  border-radius: var(--pr-radius-lg);
+  box-shadow: var(--pr-shadow-1);
+  transition: border-color var(--pr-dur-2) var(--pr-ease),
+    box-shadow var(--pr-dur-2) var(--pr-ease),
+    transform var(--pr-dur-2) var(--pr-ease);
+}
+
+/* server row hover-lift */
+:where(a[class*="ServerRowContainer"], a[class*="ServerRow"]):hover div {
+  border-color: var(--pr-border-strong);
+}
+
+/* ── buttons ──────────────────────────────────────────────────────────── */
+:where(button, [role="button"], a[class*="Button"]) {
+  border-radius: var(--pr-radius-md);
+  font-weight: var(--pr-font-weight-medium);
+  transition: transform var(--pr-dur-1) var(--pr-ease),
+    box-shadow var(--pr-dur-1) var(--pr-ease),
+    background-color var(--pr-dur-1) var(--pr-ease),
+    border-color var(--pr-dur-1) var(--pr-ease),
+    color var(--pr-dur-1) var(--pr-ease);
+}
+:where(button:active, [role="button"]:active) { transform: scale(0.98); }
+:where(button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible) {
+  outline: 2px solid var(--pr-accent);
+  outline-offset: 1px;
+}
+
+/* primary CTA styling */
+:where(button[data-primus-btn="primary"], [class*="btn-primary"], [class*="Button-primary"], a[class*="ButtonPrimary"]) {
+  background: var(--pr-accent) !important;
+  border: 0 !important;
+  color: var(--pr-accent-contrast) !important;
+  box-shadow: var(--pr-shadow-accent);
+}
+:where(button[data-primus-btn="primary"]:hover) {
+  background: var(--pr-accent-strong) !important;
+  box-shadow: var(--pr-shadow-2), var(--pr-shadow-accent);
+  transform: translateY(-1px);
+}
+
+/* danger buttons */
+:where([class*="Button-danger"], [class*="ButtonDanger"], button[data-primus-btn="danger"]) {
+  background: var(--pr-danger) !important;
+  border: 0 !important;
+  color: #fff !important;
+}
+
+/* ── inputs ───────────────────────────────────────────────────────────── */
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
+  background: var(--pr-surface-sunken) !important;
+  border: var(--pr-border-width) solid var(--pr-border) !important;
+  border-radius: var(--pr-radius-md) !important;
+  color: var(--pr-text-primary) !important;
+  transition: border-color var(--pr-dur-1) var(--pr-ease),
+    box-shadow var(--pr-dur-1) var(--pr-ease);
+}
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus, select:focus, textarea:focus) {
+  border-color: var(--pr-accent) !important;
+  box-shadow: 0 0 0 3px var(--pr-accent-weak) !important;
+}
+:where(input[type="checkbox"], input[type="radio"]) {
+  background: transparent !important;
+  border: 1px solid var(--pr-border-strong) !important;
+  box-shadow: none !important;
+  accent-color: var(--pr-accent);
+}
+:where(input[type="checkbox"]:focus, input[type="radio"]:focus) {
+  box-shadow: 0 0 0 3px var(--pr-accent-weak) !important;
+  border-color: var(--pr-accent) !important;
+}
+:where(label) { color: var(--pr-text-secondary); font-weight: var(--pr-font-weight-medium); }
+
+/* ── tables (admin & client) ──────────────────────────────────────────── */
+:where(table) { border-collapse: separate; border-spacing: 0; }
+:where(th) {
+  color: var(--pr-text-muted);
+  text-transform: uppercase;
+  font-size: var(--pr-text-xs);
+  font-weight: var(--pr-font-weight-bold);
+  letter-spacing: 0.06em;
+}
+:where(tbody tr) {
+  border-bottom: 1px solid var(--pr-border);
+  transition: background-color var(--pr-dur-1) var(--pr-ease);
+}
+:where(tbody tr:hover) { background: var(--pr-surface-sunken); }
+
+/* ── modal overlays ───────────────────────────────────────────────────── */
+:where(div[class*="Modal"], dialog) {
+  background: var(--pr-surface) !important;
+  border: var(--pr-border-width) solid var(--pr-border) !important;
+  border-radius: var(--pr-radius-xl) !important;
+  box-shadow: var(--pr-shadow-5) !important;
+  animation: pr-scale-in var(--pr-dur-2) var(--pr-ease-spring) both;
+}
+:where(div[class*="ModalMask"], div[class*="Backdrop"]) {
+  background: rgba(5, 6, 14, 0.62) !important;
+  backdrop-filter: blur(6px) saturate(1.1);
+  animation: pr-fade-in var(--pr-dur-2) var(--pr-ease) both;
+}
+
+/* ── console ──────────────────────────────────────────────────────────── */
+:where(div[class*="TerminalContainer"], div[id="terminal"]) {
+  background: var(--pr-terminal-bg) !important;
+  border: var(--pr-border-width) solid var(--pr-terminal-border) !important;
+  border-radius: var(--pr-radius-lg) !important;
+  font-family: var(--pr-font-mono) !important;
+}
+:where(div[class*="console"]) :where(span) { font-family: inherit; }
+:where(.xterm) { padding: var(--pr-space-3) !important; }
+:where(.xterm .xterm-rows) { color: var(--pr-text-primary); }
+
+/* command input under the console */
+:where(div[class*="CommandInput"], form[class*="command"]) input {
+  background: var(--pr-surface-sunken) !important;
+  font-family: var(--pr-font-mono);
+}
+
+/* ── nav bar & sub nav ────────────────────────────────────────────────── */
+:where(header[class*="NavBar"], header[class*="Navigation"]) {
+  background: var(--pr-surface-header) !important;
+  backdrop-filter: blur(12px) saturate(1.3);
+  border-bottom: 1px solid var(--pr-border) !important;
+}
+:where(a[class*="Navlink"], a[class*="NavLink"]) {
+  border-radius: var(--pr-radius-md);
+  transition: background-color var(--pr-dur-1) var(--pr-ease),
+    color var(--pr-dur-1) var(--pr-ease);
+}
+:where(a[class*="Navlink"]:hover) { background: var(--pr-surface-sunken); color: var(--pr-text-primary); }
+:where(a[class*="NavlinkActive"], a[aria-current="page"]):not([href*="#"]) {
+  color: var(--pr-accent-text) !important;
+  background: var(--pr-accent-weak) !important;
+}
+
+/* tab-style sub navigation */
+:where(div[class*="SubNavigation"], div[class*="SubNav"]) {
+  gap: var(--pr-space-1);
+}
+
+/* ── stat blocks (RAM/CPU/Disk bars) ──────────────────────────────────── */
+:where(div[class*="Stat"] > div[class*="Bar"], div[class*="ProgressBar"]) {
+  overflow: hidden;
+  border-radius: var(--pr-radius-pill);
+  background: var(--pr-surface-sunken);
+}
+:where(div[class*="Stat"] > div[class*="Bar"] > div, div[class*="ProgressBar"] > div) {
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--pr-accent), var(--pr-accent-strong)) !important;
+  transition: width var(--pr-dur-3) var(--pr-ease);
+}
+
+/* colored badges / chips */
+:where([class*="Badge"], [class*="Chip"]) {
+  border-radius: var(--pr-radius-pill) !important;
+  font-weight: var(--pr-font-weight-medium);
+  font-size: var(--pr-text-xs) !important;
+}
+
+/* ── tooltips ─────────────────────────────────────────────────────────── */
+:where([role="tooltip"], .tooltip) {
+  background: var(--pr-surface-raised) !important;
+  color: var(--pr-text-primary) !important;
+  border: 1px solid var(--pr-border-strong) !important;
+  border-radius: var(--pr-radius-sm) !important;
+  box-shadow: var(--pr-shadow-3) !important;
+  padding: 6px 10px !important;
+  font-size: var(--pr-text-xs) !important;
+  animation: pr-fade-in var(--pr-dur-1) var(--pr-ease) both;
+}
+
+/* ── dropdown menus ───────────────────────────────────────────────────── */
+:where(div[class*="Dropdown"], ul[class*="Menu"], div[class*="Popover"], details > div[class*="MenuContainer"]) {
+  background: var(--pr-surface-raised) !important;
+  border: 1px solid var(--pr-border-strong) !important;
+  border-radius: var(--pr-radius-lg) !important;
+  box-shadow: var(--pr-shadow-4) !important;
+  animation: pr-scale-in var(--pr-dur-2) var(--pr-ease-spring) both;
+}
+:where(div[class*="Dropdown"] a:hover, div[class*="Dropdown"] button:hover) { background: var(--pr-surface-sunken) !important; }
+
+/* ── file manager rows ──────────────────────────────────────────────────
+   style.module.css hashes .file_row / .details, so utility overrides miss.
+   React Router also marks every file NavLink .active (pathname match). */
+#app div[class*="style-module_"]:has(> a[href*="/files"]) {
+  background: var(--pr-surface-2) !important;
+  border: 1px solid var(--pr-border) !important;
+  border-radius: var(--pr-radius-md) !important;
+  margin-bottom: 4px !important;
+  color: var(--pr-text-primary) !important;
+  box-shadow: none !important;
+  transition: background-color var(--pr-dur-1) var(--pr-ease),
+    border-color var(--pr-dur-1) var(--pr-ease);
+}
+#app div[class*="style-module_"]:has(> a[href*="/files"]):hover {
+  background: var(--pr-surface-raised) !important;
+  border-color: var(--pr-border-strong) !important;
+}
+#app a[class*="style-module_"][href*="/files"],
+#app a[class*="style-module_"][href*="/files"].active,
+#app a[class*="style-module_"][href*="/files"][aria-current] {
+  background: transparent !important;
+  color: var(--pr-text-primary) !important;
+  box-shadow: none !important;
+}
+#app a[class*="style-module_"][href*="/files"]:hover {
+  color: var(--pr-text-primary) !important;
+  background: transparent !important;
+}
+#app [class*="FileDropdownMenu___StyledDiv"] {
+  background: transparent !important;
+  border-color: var(--pr-border) !important;
+  box-shadow: none !important;
+}
+#app [class*="FileManagerBreadcrumbs"] a.active,
+#app [class*="FileManagerBreadcrumbs"] a[aria-current] {
+  background: transparent !important;
+  color: var(--pr-accent-text) !important;
+  box-shadow: none !important;
+}
+:where(div[class*="FileRow"], tr[class*="file"]) {
+  transition: background-color var(--pr-dur-1) var(--pr-ease);
+  border-radius: var(--pr-radius-md);
+}
+:where(div[class*="FileRow"]:hover, tr[class*="file"]:hover) { background: var(--pr-surface-2); }
+#app [class*="FileManager"] [class*="FileObject"],
+#app [class*="FileRow"] {
+  border-color: var(--pr-border) !important;
+}
+
+/* file-manager CTAs tagged by file-trash.js — never paint console power. */
+#app button.pr-fm-cta {
+  background: var(--pr-surface-raised) !important;
+  border: 1px solid var(--pr-border-strong) !important;
+  color: var(--pr-text-primary) !important;
+  border-radius: var(--pr-radius-md) !important;
+  box-shadow: none !important;
+}
+#app button.pr-fm-cta:hover {
+  border-color: var(--pr-accent) !important;
+  color: var(--pr-accent-text) !important;
+}
+
+/* code editors (files page) */
+:where(.ace_editor, .cm-editor) {
+  border-radius: var(--pr-radius-md);
+  border: 1px solid var(--pr-border) !important;
+}
+
+/* ── schedule/backup timeline frames are styled from widgets.js directly ── */
+
+/* ── spinner → branded ring ───────────────────────────────────────────── */
+:where([class*="spinner"], [class*="Spinner"]):not(.pr-toast) {
+  border-color: var(--pr-accent-weak) !important;
+  border-top-color: var(--pr-accent) !important;
+}
+
+/* empty state text wrappers */
+:where(p[class*="empty"], div[class*="EmptyState"]) {
+  color: var(--pr-text-muted);
+}
+
+/* footer link spacing handled by footer-bar widget */
+
+/* ── Tailwind override layer ─────────────────────────────────────────── */
+#app .bg-neutral-800, #app .bg-neutral-900, #app .bg-neutral-700,
+#app [class*="bg-neutral-800"], #app [class*="bg-neutral-900"] {
+  background-color: var(--pr-surface) !important;
+}
+#app input[type="checkbox"],
+#app input[type="radio"],
+#app .bg-neutral-800[type="checkbox"],
+#app [class*="bg-neutral"][type="checkbox"] {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+#app .bg-neutral-600, #app [class*="bg-neutral-600"] {
+  background-color: var(--pr-surface-raised) !important;
+}
+#app .text-neutral-400, #app [class*="text-neutral-400"] {
+  color: var(--pr-text-muted) !important;
+}
+#app .text-neutral-300, #app [class*="text-neutral-300"] {
+  color: var(--pr-text-secondary) !important;
+}
+#app .text-neutral-200, #app .text-white, #app [class*="text-neutral-200"], #app [class*="text-white"] {
+  color: var(--pr-text-primary) !important;
+}
+#app .border-neutral-700, #app [class*="border-neutral-700"] {
+  border-color: var(--pr-border) !important;
+}
+#app .border-neutral-600, #app [class*="border-neutral-600"] {
+  border-color: var(--pr-border-strong) !important;
+}
+#app a[class*="text-blue-"], #app button[class*="text-blue-"], #app [class*="text-cyan-"] {
+  color: var(--pr-accent-text) !important;
+}
+#app [class*="bg-blue-"], #app [class*="bg-cyan-"] {
+  background-color: var(--pr-accent) !important;
+}
+#app [class*="hover:bg-neutral-700"]:hover, #app [class*="hover:bg-neutral-600"]:hover {
+  background-color: var(--pr-surface-sunken) !important;
+}
+/* darker neutral steps the stock bundle uses on the dashboard shell */
+#app .bg-black, #app [class*="bg-black"],
+#app [class*="bg-neutral-950"] {
+  background-color: var(--pr-page) !important;
+}
+#app [class*="bg-neutral-700"] {
+  background-color: var(--pr-surface-2) !important;
+}
+/* hashed styled-components (twin.macro) do not keep the utility class name */
+#app [class*="ContentBox___StyledDiv"],
+#app [class*="GreyRowBox"],
+#app [class*="TitledGreyBox___StyledDiv"],
+#app [class*="ServerRow__StatusIndicatorBox"] {
+  background: var(--pr-surface) !important;
+  border: 1px solid var(--pr-border) !important;
+  box-shadow: var(--pr-shadow-1) !important;
+  color: var(--pr-text-primary) !important;
+}
+#app [class*="GreyRowBox"]:hover,
+#app [class*="TitledGreyBox___StyledDiv"]:hover,
+#app [class*="ServerRow__StatusIndicatorBox"]:hover {
+  border-color: var(--pr-border-strong) !important;
+  box-shadow: var(--pr-shadow-2) !important;
+}
+#app [class*="ContentBox___StyledH"] {
+  color: var(--pr-text-primary) !important;
+  font-family: var(--pr-font-display) !important;
+}
+#app [class*="bg-neutral-500"] {
+  background-color: var(--pr-surface-raised) !important;
+}
+#app .text-neutral-500, #app [class*="text-neutral-500"],
+#app [class*="text-neutral-600"] {
+  color: var(--pr-text-faint) !important;
+}
+#app [class*="border-neutral-800"], #app [class*="border-neutral-900"] {
+  border-color: var(--pr-border) !important;
+}
+#app [class*="hover:text-neutral-100"]:hover,
+#app [class*="hover:text-white"]:hover {
+  color: var(--pr-text-primary) !important;
+}
+#app [class*="text-red-400"], #app [class*="text-red-500"] { color: var(--pr-danger) !important; }
+#app [class*="bg-red-500"] { background-color: var(--pr-danger) !important; }
+#app [class*="bg-green-500"] { background-color: var(--pr-success) !important; }
+#app [class*="bg-yellow-500"] { background-color: var(--pr-warning) !important; }
+/* rounded utility frames inherit the token radius */
+#app [class*="rounded-lg"], #app [class*="rounded-xl"] { border-radius: var(--pr-radius-lg) !important; }
+#app [class*="rounded-md"], #app [class*="rounded"] { border-radius: var(--pr-radius-md) !important; }
+#app div[class*="col-span-4"][class*="lg:col-span-3"] {
+  background: var(--pr-surface) !important;
+  border: var(--pr-border-width) solid var(--pr-border) !important;
+  border-radius: var(--pr-radius-lg) !important;
+}
+#app div[class*="order-last"], #app aside {
+  background: transparent !important;
+}
+#app header, #app nav, #app [class*="SubNavigation"], #app [class*="Navigation"] {
+  font-family: var(--pr-font-ui) !important;
+}
+#app h1, #app h2, #app h3, #app h4 {
+  font-family: var(--pr-font-display) !important;
+  color: var(--pr-text-primary) !important;
+}
+#app p, #app span, #app label, #app li, #app td, #app th, #app a {
+  font-family: var(--pr-font-ui) !important;
+}
+#app code, #app pre, #app .xterm, #app [class*="mono"] {
+  font-family: var(--pr-font-mono) !important;
+}
+
+/* ── hard frame overrides (bundle utilities win over :where, so pin these) ─ */
+html {
+  background: var(--pr-page) !important;
+}
+body {
+  background: var(--pr-page) !important;
+  color: var(--pr-text-primary) !important;
+  font-family: var(--pr-font-ui) !important;
+  -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--pr-page-gradient);
+}
+
+/* sub-navigation strip (server sub-nav tabs) */
+#app #SubNavigation, #app [id="SubNavigation"] {
+  background: var(--pr-surface-header) !important;
+  border-bottom: 1px solid var(--pr-border) !important;
+  backdrop-filter: blur(12px) saturate(1.3);
+}
+#app #SubNavigation a, #app #SubNavigation button,
+#app [id="SubNavigation"] a, #app [id="SubNavigation"] button {
+  color: var(--pr-text-secondary) !important;
+}
+#app #SubNavigation a:hover, #app [id="SubNavigation"] a:hover {
+  color: var(--pr-text-primary) !important;
+  background: var(--pr-surface-sunken) !important;
+}
+
+/* websocket "connecting / trouble" banner → themed soft state */
+#app [class*="WebsocketHandler"] {
+  background: var(--pr-info-weak) !important;
+  color: var(--pr-info) !important;
+  border-bottom: 1px solid var(--pr-border) !important;
+}
+#app [class*="WebsocketHandler"] a,
+#app [class*="WebsocketHandler"] button {
+  color: var(--pr-info) !important;
+}
+
+/* right-hand server stats column on console */
+#app div[class*="col-span-4"][class*="lg:col-span-1"] {
+  gap: var(--pr-space-3) !important;
+}
+#app div[class*="col-span-4"][class*="lg:col-span-1"] > div {
+  background: var(--pr-surface) !important;
+  border: var(--pr-border-width) solid var(--pr-border) !important;
+  border-radius: var(--pr-radius-lg) !important;
+  box-shadow: var(--pr-shadow-1) !important;
+}
+#app div[class*="col-span-4"][class*="lg:col-span-1"] > div:hover {
+  border-color: var(--pr-border-strong) !important;
+}
+
+/* content frames on non-console server pages (files/db/schedules/…) */
+#app div[class*="col-span-4"] > div[class*="rounded"],
+#app div[class*="lg:col-span-4"] {
+  border-color: var(--pr-border) !important;
+}
+
+/* ── print safety ─────────────────────────────────────────────────────── */
+#app input[type="checkbox"],
+#app input[type="radio"] {
+  appearance: auto;
+  width: 14px !important;
+  height: 14px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 1px solid var(--pr-border-strong) !important;
+  border-radius: 3px !important;
+  box-shadow: none !important;
+  accent-color: var(--pr-accent);
+}
+
+/* ── Phase 3: stock account/auth/modals/tables/dialogs ─────── */
+
+/* account settings page */
+body.pr-account #app > div,
+body.pr-account #app h1,
+body.pr-account #app h2,
+body.pr-account #app h3 {
+  background: var(--pr-surface) !important;
+  border-color: var(--pr-border) !important;
+  color: var(--pr-text-primary) !important;
+}
+body.pr-account #app div[class*="col-span-4"] > div {
+  background: var(--pr-surface) !important;
+  border: var(--pr-border-width) solid var(--pr-border) !important;
+  border-radius: var(--pr-radius-lg) !important;
+  box-shadow: var(--pr-shadow-1) !important;
+}
+body.pr-account [class*="FormField"] {
+  border-color: var(--pr-border) !important;
+}
+body.pr-account [class*="InputGroup"] input,
+body.pr-account [class*="InputGroup"] select {
+  background: var(--pr-surface-sunken) !important;
+  border-color: var(--pr-border) !important;
+  color: var(--pr-text-primary) !important;
+}
+body.pr-account [class*="InputGroup"] input:focus,
+body.pr-account [class*="InputGroup"] select:focus {
+  border-color: var(--pr-accent) !important;
+  box-shadow: 0 0 0 3px var(--pr-accent-weak) !important;
+}
+
+/* auth pages */
+body.pr-auth,
+body:has(form img[src*="pterodactyl"]) {
+  background: var(--pr-page) !important;
+}
+body.pr-auth #app,
+body.pr-auth #app > div,
+body:has(form img[src*="pterodactyl"]) #app,
+body:has(form img[src*="pterodactyl"]) #app > div {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+body.pr-auth [class*="Card"],
+body.pr-auth [class*="Container"],
+body:has(form img[src*="pterodactyl"]) [class*="Card"],
+body:has(form img[src*="pterodactyl"]) [class*="Container"] {
+  background: var(--pr-surface) !important;
+  border: var(--pr-border-width) solid var(--pr-border) !important;
+  border-radius: var(--pr-radius-xl) !important;
+  box-shadow: var(--pr-shadow-4) !important;
+}
+body.pr-auth [class*="InputGroup"] input,
+body.pr-auth [class*="InputGroup"] select,
+body:has(form img[src*="pterodactyl"]) [class*="InputGroup"] input,
+body:has(form img[src*="pterodactyl"]) [class*="InputGroup"] select {
+  background: var(--pr-surface-sunken) !important;
+  border-color: var(--pr-border) !important;
+  color: var(--pr-text-primary) !important;
+}
+body.pr-auth [class*="InputGroup"] input:focus,
+body.pr-auth [class*="InputGroup"] select:focus,
+body:has(form img[src*="pterodactyl"]) [class*="InputGroup"] input:focus,
+body:has(form img[src*="pterodactyl"]) [class*="InputGroup"] select:focus {
+  border-color: var(--pr-accent) !important;
+  box-shadow: 0 0 0 3px var(--pr-accent-weak) !important;
+}
+body.pr-auth [class*="Button-primary"],
+body.pr-auth [class*="ButtonPrimary"],
+body:has(form img[src*="pterodactyl"]) [class*="Button-primary"],
+body:has(form img[src*="pterodactyl"]) [class*="ButtonPrimary"] {
+  background: var(--pr-accent) !important;
+  border: 0 !important;
+  color: var(--pr-accent-contrast) !important;
+}
+body.pr-auth [class*="Button-danger"],
+body:has(form img[src*="pterodactyl"]) [class*="Button-danger"] {
+  background: var(--pr-danger) !important;
+  border: 0 !important;
+  color: #fff !important;
+}
+
+/* modal/dialog restate (higher specificity than existing :where map) */
+#app div[class*="Modal"]:not(.pr-modal),
+#app dialog:not(.pr-modal),
+#app [class*="Dialog"] {
+  background: var(--pr-surface) !important;
+  border: var(--pr-border-width) solid var(--pr-border) !important;
+  border-radius: var(--pr-radius-xl) !important;
+  box-shadow: var(--pr-shadow-5) !important;
+  animation: pr-scale-in var(--pr-dur-2) var(--pr-ease-spring) both;
+}
+#app div[class*="ModalMask"]:not(.pr-modal__scrim),
+#app [class*="DialogMask"],
+#app [class*="Backdrop"] {
+  background: rgba(5, 6, 14, 0.62) !important;
+  backdrop-filter: blur(6px) saturate(1.1);
+}
+#app div[class*="Modal"] h2,
+#app div[class*="Modal"] h3,
+#app dialog h2,
+#app dialog h3,
+#app [class*="Dialog"] h2,
+#app [class*="Dialog"] h3 {
+  font-family: var(--pr-font-display) !important;
+  color: var(--pr-text-primary) !important;
+}
+#app div[class*="Modal"] p,
+#app dialog p,
+#app [class*="Dialog"] p {
+  color: var(--pr-text-secondary) !important;
+}
+
+/* table + pagination restate */
+#app table,
+#app [class*="Table"] {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+#app [class*="Table"] th,
+#app [class*="Table"] thead th {
+  color: var(--pr-text-muted);
+  text-transform: uppercase;
+  font-size: var(--pr-text-xs);
+  font-weight: var(--pr-font-weight-bold);
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--pr-border-strong) !important;
+  background: var(--pr-surface-header) !important;
+}
+#app [class*="Table"] tbody tr,
+#app [class*="Table"] tr {
+  border-bottom: 1px solid var(--pr-border) !important;
+  transition: background-color var(--pr-dur-1) var(--pr-ease);
+}
+#app [class*="Table"] tbody tr:hover,
+#app [class*="Table"] tr:hover {
+  background: var(--pr-surface-sunken) !important;
+}
+#app [class*="Table"] td,
+#app [class*="Table"] tbody td {
+  color: var(--pr-text-primary);
+}
+#app [class*="Pagination"] {
+  gap: var(--pr-space-2);
+}
+#app [class*="Pagination"] a,
+#app [class*="Pagination"] button {
+  color: var(--pr-text-secondary);
+  border-color: var(--pr-border);
+  border-radius: var(--pr-radius-md);
+  background: var(--pr-surface);
+}
+#app [class*="Pagination"] a:hover,
+#app [class*="Pagination"] button:hover {
+  background: var(--pr-surface-sunken);
+  color: var(--pr-text-primary);
+}
+#app [class*="Pagination"][aria-current="page"],
+#app [class*="Pagination"] a.is-active {
+  background: var(--pr-accent) !important;
+  color: var(--pr-accent-contrast) !important;
+  border-color: var(--pr-accent) !important;
+}
+
+/* alert / flash messages */
+#app [class*="Alert"],
+#app [class*="Flash"],
+#app [class*="Message"] {
+  border: var(--pr-border-width) solid var(--pr-border) !important;
+  border-radius: var(--pr-radius-md) !important;
+  background: var(--pr-surface) !important;
+  color: var(--pr-text-primary) !important;
+}
+#app [class*="Alert--success"],
+#app [class*="Flash--success"] { border-left: 3px solid var(--pr-success) !important; }
+#app [class*="Alert--danger"],
+#app [class*="Flash--danger"] { border-left: 3px solid var(--pr-danger) !important; }
+#app [class*="Alert--warning"],
+#app [class*="Flash--warning"] { border-left: 3px solid var(--pr-warning) !important; }
+
+/* server detail sidebar + info panels */
+#app [class*="ServerDetail"],
+#app div[class*="col-span-4"][class*="lg:col-span-1"] > div,
+#app [class*="InfoPanel"],
+#app [class*="DetailRow"] {
+  background: var(--pr-surface) !important;
+  border: var(--pr-border-width) solid var(--pr-border) !important;
+  border-radius: var(--pr-radius-lg) !important;
+  box-shadow: var(--pr-shadow-1) !important;
+}
+#app [class*="DetailRow"] dt {
+  color: var(--pr-text-muted);
+}
+#app [class*="DetailRow"] dd {
+  color: var(--pr-text-primary);
+}
+
+/* activity / log pages */
+#app [class*="Activity"],
+#app [class*="Log"] {
+  background: var(--pr-surface) !important;
+  border-color: var(--pr-border) !important;
+}
+#app [class*="Log"] pre,
+#app [class*="Activity"] pre {
+  background: var(--pr-surface-sunken) !important;
+  border-color: var(--pr-border) !important;
+  color: var(--pr-text-primary);
+}
+
+/* responsive collapse for account/auth */
+@media (max-width: 640px) {
+  body.pr-account #app > div,
+  body.pr-auth #app > div {
+    border-radius: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+  }
+}
+
+@media print {
+  :where(body):before { display: none; }
+}

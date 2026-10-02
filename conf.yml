@@ -1,0 +1,45 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  Primus — Premium AI-powered theme for Pterodactyl (Blueprint extension)
+#  Docs: https://blueprint.zip/docs/configs/confyml
+# ─────────────────────────────────────────────────────────────────────────────
+
+info:
+  name: "Primus"
+  identifier: "primus"
+  description: "A premium AI-powered theme for Pterodactyl. Design-token driven client & admin restyle, live customizer with presets, command palette, AI diagnostics, and a prompt-to-server builder."
+  version: "v1.0.0"
+  target: "beta-2026-08"
+  author: "MonkeyCode AI"
+  website: "https://monkeycode-ai.net"
+  icon: "assets/icon.svg"
+  # Install/removal scripts inside 'private/' are auto-detected by Blueprint.
+  flags: ""
+
+admin:
+  view: "admin/view.blade.php"
+  controller: "admin/controller.php"
+  css: "admin/admin.css"
+  wrapper: "admin/wrapper.blade.php"
+
+dashboard:
+  css: "public/css/theme.css"
+  wrapper: "dashboard/wrapper.blade.php"
+  components: "dashboard/components"
+
+data:
+  # Private extension data (PHP classes, migrations, scripts, presets) —
+  # copied to .blueprint/extensions/primus/private on install.
+  directory: "private"
+  # Symlinked to public/extensions/primus (never store secrets here).
+  public: "public"
+
+requests:
+  # PHP classes (Controllers/, Services/, Models/) live under
+  #   Pterodactyl\BlueprintFramework\Extensions\{identifier}\... using the
+  #   literal namespace path (the {appcontext} placeholder is unreliable).
+  app: "private"
+  routers:
+    web: "private/routes.php"   # /extensions/primus/...
+
+database:
+  migrations: "private/migrations"
