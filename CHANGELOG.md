@@ -3,6 +3,11 @@
 ## Unreleased
 
 ### Added
+- Server-level AI Server Builder tab: describe an existing server in natural
+  language, review a strict-JSON build plan (plugins, properties, MOTD,
+  commands), approve, then execute through gated tools (marketplace install,
+  properties, MOTD, backup restore point, restart). Ask mode is read-only.
+  Templates pre-fill prompts. Build history is stored per server.
 - AI Server Builder (dashboard overlay): each client user stores their own
   OpenAI-compatible base URL, API key and model, describes a server in
   plain language, previews the matched egg and resources, then creates it

@@ -27,6 +27,7 @@ use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\IconsCont
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\TrashApiController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\PropertiesController;
 use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\ServerBuilderController;
+use Pterodactyl\BlueprintFramework\Extensions\{identifier}\Controllers\ServerBuildController;
 
 // Public runtime configuration consumed by the client bundle.
 // No secrets here — see SettingsController::public().
@@ -47,6 +48,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/builder/models', [ServerBuilderController::class, 'models']);
     Route::post('/builder/preview', [ServerBuilderController::class, 'preview']);
     Route::post('/builder/create', [ServerBuilderController::class, 'create']);
+    Route::get('/server-builder/state', [ServerBuildController::class, 'state']);
+    Route::get('/server-builder/templates', [ServerBuildController::class, 'templates']);
+    Route::get('/server-builder/builds', [ServerBuildController::class, 'builds']);
+    Route::post('/server-builder/plan', [ServerBuildController::class, 'plan']);
+    Route::post('/server-builder/execute', [ServerBuildController::class, 'execute']);
+    Route::post('/server-builder/rollback', [ServerBuildController::class, 'rollback']);
 });
 
 // Admin-only settings management (CSRF token is verified by the blueprint group).

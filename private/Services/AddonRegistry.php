@@ -84,6 +84,16 @@ class AddonRegistry
                 'comingSoon' => false,
                 'internal' => true,
             ],
+            'server-builder' => [
+                'id' => 'server-builder',
+                'title' => 'AI Server Builder',
+                'description' => 'Describe your server; review a build plan; build it with safe tools.',
+                'category' => 'management',
+                'perms' => 'file.read',
+                'icon' => 'builder',
+                'comingSoon' => false,
+                'internal' => true,
+            ],
             'player-stats' => [
                 'id' => 'player-stats',
                 'title' => 'Player Stats',

@@ -20,6 +20,7 @@
 <link rel="stylesheet" href="{webroot/public}/css/motd.css?v=1789200020{timestamp}" id="primus-motd">
 <link rel="stylesheet" href="{webroot/public}/css/addons.css?v=1789200020{timestamp}" id="primus-addons">
 <link rel="stylesheet" href="{webroot/public}/css/builder.css?v=1789300100{timestamp}" id="primus-builder">
+<link rel="stylesheet" href="{webroot/public}/css/builder-tab.css?v=1789300200{timestamp}" id="primus-builder-tab">
 
 <script>
   window.__primus = {
@@ -50,4 +51,5 @@
 <script src="{webroot/public}/js/file-trash.js?v=1789200010{timestamp}" defer></script>
 <script src="{webroot/public}/js/console-upgrade.js?v=1789100004{timestamp}" defer></script>
 <script src="{webroot/public}/js/builder.js?v=1789300100{timestamp}" defer></script>
+<script src="{webroot/public}/js/builder-tab.js?v=1789300200{timestamp}" defer></script>
 <link rel="stylesheet" href="{webroot/public}/css/file-trash.css?v=1789200020{timestamp}">

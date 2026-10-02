@@ -15,7 +15,7 @@ on top of [monkeycode-ai.net](https://monkeycode-ai.net).
 | Client | Restyled server list with hero game-banner cards (official capsule art for 19 games, SVG fallbacks otherwise) + live CPU/Memory badges, stacked hero cards on mobile, console, live CPU/Memory/Network area graphs, resource cards, files, backups, schedules, startup, settings pages (incl. per-server card image picker); notifications; footer/socials; announcements |
 | Admin | Node Disk/Memory allocated circular gauges; restyled AdminLTE chrome |
 | Power-user | Command palette (Ctrl/Cmd+K), keyboard shortcuts + overlay, onboarding tour |
-| AI | **AI Server Fixer** (console), **AI Resource Optimizer** (overview), and **AI Server Builder** (dashboard overlay that plans and creates a server from a prompt using the user's own OpenAI-compatible credentials) — keys stay server-side |
+| AI | **AI Server Fixer** (console), **AI Resource Optimizer** (overview), **AI Server Builder** (dashboard overlay that plans and creates a server from a prompt using the user's own OpenAI-compatible credentials), and a server-tab **AI Builder** that plans and applies plugin/config changes to an existing server — keys stay server-side |
 | Customizer | Admin UI with color pickers, sliders, font/logo/favicon settings, 4 presets (Midnight, Aurora, Slate, Sunset), JSON export/import, white-label mode, full surface/text/semantic palette, optional login colors, density + card size controls |
 | Ops | Per-user rate limits, AI request logging, usage dashboard with cost estimates |
 
